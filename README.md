@@ -1,93 +1,127 @@
-# 10x Astro Starter
+# GymPlanner
 
-A modern, opinionated starter template for building fast, accessible, and AI-friendly web applications.
+> **MVP web application** for planning, executing, and tracking strength workouts with AI-powered personalized training plans.
+
+## Table of Contents
+
+1. [Project Description](#project-description)  
+2. [Tech Stack](#tech-stack)  
+3. [Getting Started](#getting-started)  
+   3.1 [Prerequisites](#prerequisites)  
+   3.2 [Installation](#installation)  
+   3.3 [Configuration](#configuration)  
+   3.4 [Running the App](#running-the-app)  
+4. [Available Scripts](#available-scripts)  
+5. [Project Scope](#project-scope)  
+   5.1 [In-Scope Features](#in-scope-features)  
+   5.2 [Out-of-Scope](#out-of-scope)  
+6. [Project Status](#project-status)  
+7. [License](#license)  
+
+## Project Description
+
+GymPlanner is an MVP web application designed to simplify the process of planning, executing, and tracking strength-training workouts. It enables users to:
+
+- Generate AI-personalized training plans based on goals, training systems (e.g., PPL, FBW), available days, session duration, cycle length, and notes.
+- Create and edit training plans from scratch (days, exercises, sets, reps, rest).
+- Execute “live” workouts with checkboxes for sets, input actual weights/reps, and control rest timers with notifications.
+- Automatically save completed sessions to history and review progress.
+- Generate next-cycle progression plans via AI analysis or continue an existing plan unchanged.
 
 ## Tech Stack
 
-- [Astro](https://astro.build/) v5.5.5 - Modern web framework for building fast, content-focused websites
-- [React](https://react.dev/) v19.0.0 - UI library for building interactive components
-- [TypeScript](https://www.typescriptlang.org/) v5 - Type-safe JavaScript
-- [Tailwind CSS](https://tailwindcss.com/) v4.0.17 - Utility-first CSS framework
+- **Frontend**:  
+  - Astro 5  
+  - React 19 (interactive components)  
+  - TypeScript 5  
+  - Tailwind CSS 4  
+  - shadcn/ui  
 
-## Prerequisites
+- **Backend & Services**:  
+  - Supabase (PostgreSQL, Auth)  
+  - Openrouter.ai (AI model providers & API cost limits)  
 
-- Node.js v22.14.0 (as specified in `.nvmrc`)
-- npm (comes with Node.js)
+- **CI/CD & Hosting**:  
+  - GitHub Actions  
+  - Docker & DigitalOcean  
 
 ## Getting Started
 
-1. Clone the repository:
+### Prerequisites
+
+- Node.js v22.14.0 (see [`.nvmrc`](.nvmrc))  
+- npm (or yarn)  
+- Supabase account & project  
+- Openrouter.ai API key  
+
+### Installation
 
 ```bash
-git clone https://github.com/przeprogramowani/10x-astro-starter.git
-cd 10x-astro-starter
-```
+# Clone the repository
+git clone https://github.com/your-username/ai-gym-planner.git
+cd ai-gym-planner
 
-2. Install dependencies:
-
-```bash
+# Install dependencies
 npm install
 ```
 
-3. Run the development server:
+### Configuration
+
+Create a `.env` file in the project root with the following variables (example names):
+
+```dotenv
+SUPABASE_URL=your-supabase-url
+SUPABASE_ANON_KEY=your-supabase-anon-key
+OPENROUTER_API_KEY=your-openrouter-api-key
+```
+
+> **Note**: Add any additional environment variables required by your setup.
+
+### Running the App
 
 ```bash
 npm run dev
 ```
 
-4. Build for production:
-
-```bash
-npm run build
-```
+Visit `http://localhost:3000` (or the port shown) to view the application.
 
 ## Available Scripts
 
-- `npm run dev` - Start development server
-- `npm run build` - Build for production
-- `npm run preview` - Preview production build
-- `npm run lint` - Run ESLint
-- `npm run lint:fix` - Fix ESLint issues
+In the project directory, you can run:
 
-## Project Structure
+| Command           | Description                 |
+| ----------------- | --------------------------- |
+| `npm run dev`     | Start Astro dev server      |
+| `npm run build`   | Build for production        |
+| `npm run preview` | Preview production build    |
+| `npm run astro`   | Astro CLI                   |
+| `npm run lint`    | Run ESLint                  |
+| `npm run lint:fix`| Run ESLint with `--fix`     |
+| `npm run format`  | Run Prettier to format code |
 
-```md
-.
-├── src/
-│   ├── layouts/    # Astro layouts
-│   ├── pages/      # Astro pages
-│   │   └── api/    # API endpoints
-│   ├── components/ # UI components (Astro & React)
-│   └── assets/     # Static assets
-├── public/         # Public assets
-```
+## Project Scope
 
-## AI Development Support
+### In-Scope Features
 
-This project is configured with AI development tools to enhance the development experience, providing guidelines for:
+- **User Auth**: Email/password registration, login, logout (Supabase).  
+- **AI Plan Generation**: Form-driven plan creation and on-screen editing.  
+- **Manual Plan Builder**: Create days, exercises, sets, reps, rest.  
+- **Plan Management**: List, edit, delete saved plans.  
+- **Workout Execution**: Mark completed sets, record actuals, use rest timer with notifications, end session and save to history.  
+- **History & Progression**: Chronological workout log; AI-driven next-cycle suggestions or plan continuation.
 
-- Project structure
-- Coding practices
-- Frontend development
-- Styling with Tailwind
-- Accessibility best practices
-- Astro and React guidelines
+### Out-of-Scope (MVP Boundaries)
 
-### Cursor IDE
+- Advanced statistics & graphical analysis  
+- Import/export (PDF, CSV)  
+- Social or plan-sharing features  
+- Dedicated mobile app (responsive web only)  
+- Integrations with external fitness devices or apps  
+- Built-in exercise library with videos/descriptions  
 
-The project includes AI rules in `.cursor/rules/` directory that help Cursor IDE understand the project structure and provide better code suggestions.
+## Project Status
 
-### GitHub Copilot
-
-AI instructions for GitHub Copilot are available in `.github/copilot-instructions.md`
-
-### Windsurf
-
-The `.windsurfrules` file contains AI configuration for Windsurf.
-
-## Contributing
-
-Please follow the AI guidelines and coding practices defined in the AI configuration files when contributing to this project.
+**MVP / Alpha** – Actively in development. Core features implemented; polish and testing ongoing.
 
 ## License
 
