@@ -3,9 +3,9 @@ description:
 globs: 
 alwaysApply: true
 ---
-# AI Rules for {app-name}
+# AI Rules for GymPlanner
 
-{project-description}
+GymPlanner is a web application that enables the authomatic generation of gym workouts usin AI. 
 
 ## Tech Stack
 
