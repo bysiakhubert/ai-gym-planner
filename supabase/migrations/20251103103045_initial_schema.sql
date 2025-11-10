@@ -221,15 +221,17 @@ comment on column audit_events.payload is
 -- SECTION 3: Row-Level Security (RLS)
 -- ============================================================================
 
+-- TODO: RLS is temporarily disabled for early development. Uncomment these lines before production.
 -- Enable RLS on all tables to enforce data isolation
-alter table plans enable row level security;
-alter table training_sessions enable row level security;
-alter table audit_events enable row level security;
+-- alter table plans enable row level security;
+-- alter table training_sessions enable row level security;
+-- alter table audit_events enable row level security;
 
 -- ============================================================================
 -- SECTION 4: RLS Policies - plans table
 -- ============================================================================
 
+-- TODO: Uncomment this policy when authentication is implemented.
 -- Policy: Authenticated users can view their own plans
 -- Rationale: Users must be logged in and can only see plans they own
 -- create policy "authenticated users can view own plans"
@@ -241,6 +243,7 @@ alter table audit_events enable row level security;
 -- comment on policy "authenticated users can view own plans" on plans is
 -- 'Allows authenticated users to view only their own plans';
 
+-- TODO: Uncomment this policy when authentication is implemented.
 -- Policy: Authenticated users can insert their own plans
 -- Rationale: Users can create new plans, but only associated with their own user_id
 -- create policy "authenticated users can insert own plans"
@@ -252,6 +255,7 @@ alter table audit_events enable row level security;
 -- comment on policy "authenticated users can insert own plans" on plans is
 -- 'Allows authenticated users to create plans only for themselves';
 
+-- TODO: Uncomment this policy when authentication is implemented.
 -- Policy: Authenticated users can update their own plans
 -- Rationale: Users can modify their plans, but only their own
 -- create policy "authenticated users can update own plans"
@@ -264,6 +268,7 @@ alter table audit_events enable row level security;
 -- comment on policy "authenticated users can update own plans" on plans is
 -- 'Allows authenticated users to update only their own plans';
 
+-- TODO: Uncomment this policy when authentication is implemented.
 -- Policy: Authenticated users can delete their own plans
 -- Rationale: Users can archive (soft delete) their plans
 -- Note: Application layer should set archived=true rather than hard DELETE
@@ -280,6 +285,7 @@ alter table audit_events enable row level security;
 -- SECTION 5: RLS Policies - training_sessions table
 -- ============================================================================
 
+-- TODO: Uncomment this policy when authentication is implemented.
 -- Policy: Authenticated users can view their own sessions
 -- Rationale: Users must be logged in and can only see sessions they own
 -- create policy "authenticated users can view own sessions"
@@ -291,6 +297,7 @@ alter table audit_events enable row level security;
 -- comment on policy "authenticated users can view own sessions" on training_sessions is
 -- 'Allows authenticated users to view only their own training sessions';
 
+-- TODO: Uncomment this policy when authentication is implemented.
 -- Policy: Authenticated users can insert their own sessions
 -- Rationale: Users can create new training sessions, but only for themselves
 -- create policy "authenticated users can insert own sessions"
@@ -302,6 +309,7 @@ alter table audit_events enable row level security;
 -- comment on policy "authenticated users can insert own sessions" on training_sessions is
 -- 'Allows authenticated users to create training sessions only for themselves';
 
+-- TODO: Uncomment this policy when authentication is implemented.
 -- Policy: Authenticated users can update their own sessions
 -- Rationale: Users can modify in-progress sessions (updating actual reps/weights)
 -- Note: Application should treat sessions as immutable once ended_at is set
@@ -315,6 +323,7 @@ alter table audit_events enable row level security;
 -- comment on policy "authenticated users can update own sessions" on training_sessions is
 -- 'Allows authenticated users to update only their own sessions (typically in-progress sessions)';
 
+-- TODO: Uncomment this policy when authentication is implemented.
 -- Policy: Authenticated users can delete their own sessions
 -- Rationale: Users can delete sessions if needed (e.g., accidental creation)
 -- Note: Application should rarely delete sessions - they are historical records
@@ -331,6 +340,7 @@ alter table audit_events enable row level security;
 -- SECTION 6: RLS Policies - audit_events table
 -- ============================================================================
 
+-- TODO: Uncomment this policy when authentication is implemented.
 -- Policy: Authenticated users can view their own events
 -- Rationale: Users can view their own activity history and AI interactions
 -- create policy "authenticated users can view own events"
@@ -342,6 +352,7 @@ alter table audit_events enable row level security;
 -- comment on policy "authenticated users can view own events" on audit_events is
 -- 'Allows authenticated users to view only their own audit events';
 
+-- TODO: Uncomment this policy when authentication is implemented.
 -- Policy: Authenticated users can insert their own events
 -- Rationale: Application can log events on behalf of authenticated users
 -- create policy "authenticated users can insert own events"
