@@ -49,13 +49,17 @@ export const POST: APIRoute = async ({ request, locals }) => {
   const preferences = validationResult.data;
 
   try {
-    await auditLogService.logEvent(supabase, userId, "ai_generation_requested", { preferences });
+    await auditLogService.logEvent(supabase, userId, "ai_generation_requested", {
+      payload: { preferences },
+    });
 
     const aiPlannerService = new AiPlannerService();
     const planPreview = await aiPlannerService.generatePlanPreview(preferences);
 
     await auditLogService.logEvent(supabase, userId, "ai_generation_completed", {
-      model: planPreview.metadata.model,
+      payload: {
+        model: planPreview.metadata.model,
+      },
     });
 
     return new Response(JSON.stringify(planPreview), { status: 200 });
@@ -63,7 +67,9 @@ export const POST: APIRoute = async ({ request, locals }) => {
     // eslint-disable-next-line no-console
     console.error("AI plan generation failed:", error);
     await auditLogService.logEvent(supabase, userId, "ai_generation_failed", {
-      error: error instanceof Error ? error.message : "Unknown error",
+      payload: {
+        error: error instanceof Error ? error.message : "Unknown error",
+      },
     });
     return new Response(JSON.stringify({ error: "Internal Server Error" }), { status: 500 });
   }

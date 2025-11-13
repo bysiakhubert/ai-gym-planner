@@ -1,0 +1,213 @@
+### Test API Endpoint: POST /api/plans
+### This file contains example HTTP requests for testing the Create Plan endpoint
+
+@baseUrl = http://localhost:4321
+@apiUrl = {{baseUrl}}/api/plans
+
+### ============================================================================
+### 1. SUCCESS CASE - Create Manual Plan
+### Expected: 201 Created with full plan data
+### ============================================================================
+
+POST {{apiUrl}}
+Content-Type: application/json
+
+{
+  "name": "Custom Upper/Lower Split",
+  "effective_from": "2025-01-15T00:00:00Z",
+  "effective_to": "2025-02-25T23:59:59Z",
+  "source": "manual",
+  "prompt": null,
+  "preferences": {},
+  "plan": {
+    "schedule": {
+      "2025-01-15": {
+        "name": "Upper Body",
+        "done": false,
+        "exercises": [
+          {
+            "name": "Bench Press",
+            "sets": [
+              { "reps": 8, "weight": 80.0, "rest_seconds": 180 },
+              { "reps": 8, "weight": 80.0, "rest_seconds": 180 },
+              { "reps": 8, "weight": 80.0, "rest_seconds": 180 }
+            ]
+          },
+          {
+            "name": "Barbell Row",
+            "sets": [
+              { "reps": 10, "weight": 70.0, "rest_seconds": 120 },
+              { "reps": 10, "weight": 70.0, "rest_seconds": 120 }
+            ]
+          }
+        ]
+      },
+      "2025-01-17": {
+        "name": "Lower Body",
+        "done": false,
+        "exercises": [
+          {
+            "name": "Squat",
+            "sets": [
+              { "reps": 5, "weight": 100.0, "rest_seconds": 240 },
+              { "reps": 5, "weight": 100.0, "rest_seconds": 240 }
+            ]
+          }
+        ]
+      }
+    }
+  }
+}
+
+### ============================================================================
+### 2. SUCCESS CASE - Create AI-Generated Plan
+### Expected: 201 Created (should log both plan_created and plan_accepted)
+### ============================================================================
+
+POST {{apiUrl}}
+Content-Type: application/json
+
+{
+  "name": "AI Generated PPL Plan",
+  "effective_from": "2025-02-01T00:00:00Z",
+  "effective_to": "2025-03-31T23:59:59Z",
+  "source": "ai",
+  "prompt": "Create a Push/Pull/Legs split for muscle hypertrophy",
+  "preferences": {
+    "goal": "hypertrophy",
+    "system": "PPL",
+    "available_days": ["monday", "wednesday", "friday"],
+    "session_duration_minutes": 60,
+    "cycle_duration_weeks": 8,
+    "notes": "Focus on compound movements"
+  },
+  "plan": {
+    "schedule": {
+      "2025-02-03": {
+        "name": "Push Day",
+        "done": false,
+        "exercises": [
+          {
+            "name": "Bench Press",
+            "sets": [
+              { "reps": 10, "weight": 75.0, "rest_seconds": 180 }
+            ]
+          }
+        ]
+      }
+    }
+  }
+}
+
+### ============================================================================
+### 3. ERROR CASE - Validation Error (missing required fields)
+### Expected: 400 Bad Request with ValidationError
+### ============================================================================
+
+POST {{apiUrl}}
+Content-Type: application/json
+
+{
+  "name": "",
+  "effective_from": "2025-01-15T00:00:00Z",
+  "source": "manual"
+}
+
+### ============================================================================
+### 4. ERROR CASE - Validation Error (effective_to before effective_from)
+### Expected: 400 Bad Request with ValidationError
+### ============================================================================
+
+POST {{apiUrl}}
+Content-Type: application/json
+
+{
+  "name": "Invalid Date Range Plan",
+  "effective_from": "2025-02-25T00:00:00Z",
+  "effective_to": "2025-01-15T00:00:00Z",
+  "source": "manual",
+  "preferences": {},
+  "plan": {
+    "schedule": {}
+  }
+}
+
+### ============================================================================
+### 5. ERROR CASE - Validation Error (invalid source value)
+### Expected: 400 Bad Request with ValidationError
+### ============================================================================
+
+POST {{apiUrl}}
+Content-Type: application/json
+
+{
+  "name": "Test Plan",
+  "effective_from": "2025-01-15T00:00:00Z",
+  "effective_to": "2025-02-25T23:59:59Z",
+  "source": "invalid_source",
+  "preferences": {},
+  "plan": {
+    "schedule": {}
+  }
+}
+
+### ============================================================================
+### 6. ERROR CASE - Date Overlap Error
+### Expected: 400 Bad Request with DateOverlapError
+### Note: Run this AFTER creating the first manual plan (test case 1)
+### ============================================================================
+
+POST {{apiUrl}}
+Content-Type: application/json
+
+{
+  "name": "Overlapping Plan",
+  "effective_from": "2025-01-20T00:00:00Z",
+  "effective_to": "2025-02-15T23:59:59Z",
+  "source": "manual",
+  "preferences": {},
+  "plan": {
+    "schedule": {
+      "2025-01-20": {
+        "name": "Full Body",
+        "done": false,
+        "exercises": [
+          {
+            "name": "Deadlift",
+            "sets": [
+              { "reps": 5, "weight": 120.0, "rest_seconds": 240 }
+            ]
+          }
+        ]
+      }
+    }
+  }
+}
+
+### ============================================================================
+### 7. ERROR CASE - Invalid JSON
+### Expected: 400 Bad Request with Invalid JSON body message
+### ============================================================================
+
+POST {{apiUrl}}
+Content-Type: application/json
+
+{
+  "name": "Test Plan",
+  "invalid json here
+}
+
+### ============================================================================
+### CURL COMMANDS (Alternative to HTTP file)
+### ============================================================================
+
+# Success case - Create manual plan:
+# curl -X POST http://localhost:4321/api/plans \
+#   -H "Content-Type: application/json" \
+#   -d '{"name":"Test Plan","effective_from":"2025-01-15T00:00:00Z","effective_to":"2025-02-25T23:59:59Z","source":"manual","preferences":{},"plan":{"schedule":{"2025-01-15":{"name":"Upper Body","done":false,"exercises":[{"name":"Bench Press","sets":[{"reps":8,"weight":80.0,"rest_seconds":180}]}]}}}}'
+
+# Date overlap error:
+# curl -X POST http://localhost:4321/api/plans \
+#   -H "Content-Type: application/json" \
+#   -d '{"name":"Overlapping Plan","effective_from":"2025-01-20T00:00:00Z","effective_to":"2025-02-15T23:59:59Z","source":"manual","preferences":{},"plan":{"schedule":{}}}'
+
