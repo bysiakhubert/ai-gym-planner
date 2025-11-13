@@ -10,7 +10,7 @@ export const prerender = false;
 /**
  * POST /api/plans
  * Creates a new training plan (manual or AI-accepted)
- * 
+ *
  * @returns 201 Created with the new plan data
  * @returns 400 Bad Request for validation errors or date overlaps
  * @returns 500 Internal Server Error for unexpected errors
@@ -88,4 +88,3 @@ export const POST: APIRoute = async ({ request, locals }) => {
     });
   }
 };
-

@@ -1,0 +1,20 @@
+meta {
+  name: Create plan
+  type: http
+  seq: 3
+}
+
+post {
+  url: http://localhost:3000/api/plans/generate
+  body: none
+  auth: inherit
+}
+
+headers {
+  Content-Type: application/json
+}
+
+settings {
+  encodeUrl: true
+  timeout: 0
+}
