@@ -6,12 +6,25 @@ meta {
 
 post {
   url: http://localhost:3000/api/plans/generate
-  body: none
+  body: json
   auth: inherit
 }
 
 headers {
   Content-Type: application/json
+}
+
+body:json {
+  {
+    "preferences": {
+      "goal": "Budowa masy mięśniowej",
+      "system": "Push Pull Legs",
+      "available_days": ["Monday", "Wednesday", "Friday", "Saturday"],
+      "session_duration_minutes": 90,
+      "cycle_duration_weeks": 4,
+      "notes": "Preferuję ćwiczenia ze sztangą. Unikam przysiadów ze względu na kontuzję kolana."
+    }
+  }
 }
 
 settings {

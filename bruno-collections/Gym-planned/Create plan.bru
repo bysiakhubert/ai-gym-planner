@@ -5,13 +5,62 @@ meta {
 }
 
 post {
-  url: http://localhost:3000/api/plans/generate
-  body: none
+  url: http://localhost:3000/api/plans
+  body: json
   auth: inherit
 }
 
 headers {
   Content-Type: application/json
+}
+
+body:json {
+  {
+    "name": "Custom Upper/Lower Split",
+    "effective_from": "2025-01-15T00:00:00Z",
+    "effective_to": "2025-02-25T23:59:59Z",
+    "source": "manual",
+    "prompt": null,
+    "preferences": {},
+    "plan": {
+      "schedule": {
+        "2025-01-15": {
+          "name": "Upper Body",
+          "done": false,
+          "exercises": [
+            {
+              "name": "Bench Press",
+              "sets": [
+                { "reps": 8, "weight": 80.0, "rest_seconds": 180 },
+                { "reps": 8, "weight": 80.0, "rest_seconds": 180 },
+                { "reps": 8, "weight": 80.0, "rest_seconds": 180 }
+              ]
+            },
+            {
+              "name": "Barbell Row",
+              "sets": [
+                { "reps": 10, "weight": 70.0, "rest_seconds": 120 },
+                { "reps": 10, "weight": 70.0, "rest_seconds": 120 }
+              ]
+            }
+          ]
+        },
+        "2025-01-17": {
+          "name": "Lower Body",
+          "done": false,
+          "exercises": [
+            {
+              "name": "Squat",
+              "sets": [
+                { "reps": 5, "weight": 100.0, "rest_seconds": 240 },
+                { "reps": 5, "weight": 100.0, "rest_seconds": 240 }
+              ]
+            }
+          ]
+        }
+      }
+    }
+  }
 }
 
 settings {
