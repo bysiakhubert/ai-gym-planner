@@ -1,9 +1,11 @@
 # API Endpoint Implementation Plan: Create Plan
 
 ## 1. Przegląd punktu końcowego
+
 Ten punkt końcowy umożliwia tworzenie nowych planów treningowych. Na obecnym etapie deweloperskim, w celu ułatwienia testowania, wszystkie operacje są wykonywane w kontekście domyślnego użytkownika, a mechanizmy autoryzacji są pominięte. Obsługuje zarówno plany tworzone ręcznie, jak i te zaakceptowane po wygenerowaniu przez AI. Endpoint przeprowadza walidację danych, w tym kluczową weryfikację, czy okres obowiązywania nowego planu nie koliduje z istniejącymi, aktywnymi planami użytkownika.
 
 ## 2. Szczegóły żądania
+
 - **Metoda HTTP**: `POST`
 - **Struktura URL**: `/api/plans`
 - **Request Body**: Ciało żądania musi być zgodne z typem `CreatePlanRequest` z `src/types.ts`.
@@ -23,12 +25,14 @@ Ten punkt końcowy umożliwia tworzenie nowych planów treningowych. Na obecnym 
   - `// TODO: Dodać nagłówek Authorization po wdrożeniu autoryzacji`
 
 ## 3. Wykorzystywane typy
+
 - **Request DTO**: `CreatePlanRequest`
 - **Response DTO**: `PlanResponse`, `ApiError`
 - **Modele bazodanowe**: `PlanInsert`, `AuditEventInsert`
 - **Struktury JSON**: `PlanStructure`, `UserPreferences`
 
 ## 4. Szczegóły odpowiedzi
+
 - **Odpowiedź sukcesu (201 Created)**: Zwraca pełny obiekt nowo utworzonego planu, zgodny z typem `PlanResponse`.
   ```json
   {
@@ -40,7 +44,9 @@ Ten punkt końcowy umożliwia tworzenie nowych planów treningowych. Na obecnym 
     "source": "manual",
     "prompt": null,
     "preferences": {},
-    "plan": { /* ... PlanStructure ... */ },
+    "plan": {
+      /* ... PlanStructure ... */
+    },
     "archived": false,
     "created_at": "timestamp",
     "updated_at": "timestamp"
@@ -52,6 +58,7 @@ Ten punkt końcowy umożliwia tworzenie nowych planów treningowych. Na obecnym 
   - `// TODO: Dodać obsługę błędu 401 Unauthorized po wdrożeniu autoryzacji`
 
 ## 5. Przepływ danych
+
 1.  **Astro Route (`/api/plans`)**: Odbiera żądanie `POST`.
 2.  **Handler**: Pobiera `DEFAULT_USER_ID` ze stałej, aby przypisać plan do domyślnego użytkownika testowego. `// TODO: Zastąpić DEFAULT_USER_ID identyfikatorem z context.locals.user po wdrożeniu autoryzacji.`
 3.  **Walidacja (Zod)**: Ciało żądania jest parsowane i walidowane za pomocą schematu Zod opartego na `CreatePlanRequest`. W przypadku błędu zwracane jest `400`.
@@ -66,22 +73,26 @@ Ten punkt końcowy umożliwia tworzenie nowych planów treningowych. Na obecnym 
 7.  **Odpowiedź**: `PlanService` zwraca nowo utworzony obiekt planu. Handler API formatuje go jako odpowiedź JSON z kodem `201`.
 
 ## 6. Względy bezpieczeństwa
+
 - **Uwierzytelnianie**: `// TODO: Wdrożyć pełne uwierzytelnianie.` Na obecnym etapie uwierzytelnianie jest pominięte w celu ułatwienia testów. Endpoint jest publicznie dostępny, a wszystkie operacje są przypisywane do domyślnego użytkownika (`DEFAULT_USER_ID`). Jest to tymczasowe i musi zostać zmienione przed wdrożeniem produkcyjnym.
 - **Autoryzacja**: Polityki Supabase RLS na tabeli `plans` zapewniają, że użytkownik może tworzyć plany tylko dla samego siebie (`WITH CHECK (user_id = auth.uid())`).
 - **Walidacja danych wejściowych**: Użycie Zod do ścisłej walidacji całego ciała żądania chroni przed nieprawidłowymi lub złośliwymi danymi, w tym przed atakami typu Mass Assignment.
 - **Dostęp do kluczy**: Klucz `service_role_key` Supabase nie może być eksponowany po stronie klienta. Wszystkie operacje na bazie danych odbywają się po stronie serwera w kontekście sesji użytkownika.
 
 ## 7. Obsługa błędów
+
 - **Błędy walidacji (400)**: Zwracane, gdy dane wejściowe nie przejdą walidacji Zod. Odpowiedź zawiera szczegóły dotyczące błędnych pól.
 - **Konflikt dat (400)**: Zwracany, gdy daty planu nakładają się na istniejący plan. Odpowiedź będzie miała typ `DateOverlapError`.
 - **Brak uwierzytelnienia (401)**: `// TODO: Wdrożyć obsługę błędu 401.` Obecnie nie jest zwracany, ponieważ autoryzacja jest pominięta.
 - **Błędy serwera (500)**: W przypadku nieoczekiwanych problemów (np. błąd połączenia z bazą danych) zostanie zwrócony generyczny błąd serwera. Błąd powinien być logowany po stronie serwera w celu dalszej analizy.
 
 ## 8. Rozważania dotyczące wydajności
+
 - **Zapytanie o nakładające się daty**: To jedyne dodatkowe zapytanie przed operacją `INSERT`. Należy upewnić się, że tabela `plans` ma odpowiednie indeksy (zgodnie z `db-plan.md`, `idx_plans_effective_dates`) na kolumnach `user_id`, `effective_from`, `effective_to`, aby zapytanie było szybkie, zwłaszcza gdy użytkownik ma wiele planów.
 - **Rozmiar JSON**: Pola `plan` i `preferences` mogą przechowywać duże obiekty JSON. Ich przetwarzanie i transfer mogą wpłynąć na wydajność. Na tym etapie nie jest to problemem krytycznym.
 
 ## 9. Etapy wdrożenia
+
 1.  **Stworzenie schematu walidacji Zod**: W nowym pliku `src/lib/schemas/plan.schema.ts` zdefiniować schemat dla `CreatePlanRequest`, uwzględniając wszystkie walidacje pól oraz regułę `refine` dla `effective_to > effective_from`.
 2.  **Stworzenie `AuditService`**: W pliku `src/lib/services/audit.service.ts` zaimplementować prostą usługę z metodą `logEvent(type, userId, entityType, entityId, payload)` do wstawiania rekordów do tabeli `audit_events`.
 3.  **Stworzenie `PlanService`**: W nowym pliku `src/lib/services/plan.service.ts` zaimplementować klasę `PlanService`.

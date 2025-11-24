@@ -9,7 +9,7 @@ import type { Json } from "src/db/database.types";
 export const auditLogService = {
   /**
    * Logs an audit event to the database
-   * 
+   *
    * @param supabase - Supabase client instance
    * @param userId - ID of the user performing the action
    * @param eventType - Type of audit event (e.g., 'plan_created', 'session_started')

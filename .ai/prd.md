@@ -11,11 +11,13 @@ Planowanie i prowadzenie treningów siłowych często odbywa się w notatnikach 
 ## 3. Wymagania funkcjonalne
 
 ### 3.1. System Użytkowników (Supabase Auth)
+
 - F-001: Użytkownik może założyć nowe konto przy użyciu adresu e-mail i hasła.
 - F-002: Użytkownik może zalogować się na swoje konto.
 - F-003: Użytkownik może się wylogować ze swojego konta.
 
 ### 3.2. Moduł Planów Treningowych
+
 - F-005: Użytkownik może wygenerować plan treningowy przy pomocy AI, wypełniając formularz zawierający: cel (np. hipertrofia, siła), system treningowy (np. PPL, FBW), dostępne dni, ilość czasu jaką moe poświęcic na sesję treningową, długość cyklu (w tygodniach) oraz dodatkowe uwagi.
 - F-006: Użytkownik może stworzyć nowy plan treningowy od zera za pomocą prostego formularza, definiując dni, ćwiczenia, liczbę serii, powtórzeń i długość przerw.
 - F-007: Użytkownik może przeglądać listę swoich zapisanych planów treningowych.
@@ -24,6 +26,7 @@ Planowanie i prowadzenie treningów siłowych często odbywa się w notatnikach 
 - F-010: Każdy plan na liście jest oznaczony datą zakończenia cyklu, wynikającą z zadeklarowanej długości i daty startu.
 
 ### 3.3. Moduł Realizacji Treningu ("Trening Dnia")
+
 - F-011: Użytkownik może wybrać i uruchomić trening zaplanowany na dany dzień.
 - F-012: W widoku treningu użytkownik widzi listę ćwiczeń i serii z planowanymi wartościami (ciężar, powtórzenia).
 - F-013: Użytkownik może odznaczać każdą wykonaną serię.
@@ -33,17 +36,20 @@ Planowanie i prowadzenie treningów siłowych często odbywa się w notatnikach 
 - F-017: Użytkownik może zakończyć sesję treningową, co powoduje jej automatyczne zapisanie w historii.
 
 ### 3.4. Moduł Historii i Progresji
+
 - F-018: Aplikacja automatycznie zapisuje każdą zakończoną sesję treningową w historii.
 - F-019: Użytkownik ma dostęp do chronologicznej listy odbytych treningów.
 - F-020: Po zakończeniu cyklu treningowego użytkownik ma opcję wygenerowania nowego planu przez AI, która analizuje historię i sugeruje progresję (np. zwiększenie ciężaru).
 - F-021: Użytkownik ma alternatywną opcję kontynuowania istniejącego planu na kolejny cykl bez zmian.
 
 ### 3.5. Ogólne
+
 - F-022: Aplikacja zawiera klauzulę bezpieczeństwa (disclaimer) informującą, że użytkownik korzysta z planów AI na własną odpowiedzialność i powinien posiadać wiedzę pozwalającą na ich ocenę.
 
 ## 4. Granice produktu
 
 Następujące funkcjonalności celowo NIE wchodzą w zakres MVP, aby umożliwić szybkie wdrożenie i zebranie opinii od użytkowników:
+
 - Zaawansowane statystyki i graficzna analiza postępów treningowych.
 - Import i eksport planów w różnych formatach (np. PDF, CSV).
 - Funkcje społecznościowe, takie jak współdzielenie planów między użytkownikami.
@@ -54,7 +60,9 @@ Następujące funkcjonalności celowo NIE wchodzą w zakres MVP, aby umożliwić
 ## 5. Historyjki użytkowników
 
 ### 5.1. Zarządzanie Kontem
+
 ---
+
 - ID: US-001
 - Tytuł: Rejestracja nowego użytkownika
 - Opis: Jako nowy użytkownik, chcę móc założyć konto za pomocą e-maila i hasła, aby bezpiecznie przechowywać moje plany treningowe.
@@ -66,6 +74,7 @@ Następujące funkcjonalności celowo NIE wchodzą w zakres MVP, aby umożliwić
   5. W przypadku próby rejestracji na istniejący e-mail, otrzymuję stosowny komunikat błędu.
 
 ---
+
 - ID: US-002
 - Tytuł: Logowanie do aplikacji
 - Opis: Jako zarejestrowany użytkownik, chcę móc zalogować się na swoje konto, aby uzyskać dostęp do moich planów.
@@ -75,9 +84,10 @@ Następujące funkcjonalności celowo NIE wchodzą w zakres MVP, aby umożliwić
   3. W przypadku podania błędnych danych, wyświetlany jest komunikat o nieprawidłowym loginie lub haśle.
   4. Sesja użytkownika jest utrzymywana po zamknięciu i ponownym otwarciu przeglądarki.
 
-
 ### 5.2. Plany Treningowe
+
 ---
+
 - ID: US-004
 - Tytuł: Generowanie planu przez AI
 - Opis: Jako użytkownik, chcę wypełnić formularz z moimi preferencjami treningowymi, aby AI wygenerowała dla mnie spersonalizowany plan.
@@ -88,6 +98,7 @@ Następujące funkcjonalności celowo NIE wchodzą w zakres MVP, aby umożliwić
   4. Pod planem znajdują się przyciski "Zaakceptuj i zapisz" oraz "Odrzuć".
 
 ---
+
 - ID: US-005
 - Tytuł: Tworzenie planu od zera
 - Opis: Jako użytkownik, chcę mieć możliwość samodzielnego stworzenia planu treningowego, jeśli nie chcę korzystać z AI.
@@ -99,6 +110,7 @@ Następujące funkcjonalności celowo NIE wchodzą w zakres MVP, aby umożliwić
   5. W każdej chwili mogę zapisać postępy w tworzeniu planu.
 
 ---
+
 - ID: US-006
 - Tytuł: Przeglądanie i edycja planów
 - Opis: Jako użytkownik, chcę widzieć listę moich planów i mieć możliwość ich edycji, aby dostosowywać je do swoich potrzeb.
@@ -110,7 +122,9 @@ Następujące funkcjonalności celowo NIE wchodzą w zakres MVP, aby umożliwić
   5. Mogę usunąć plan z listy, co wymaga potwierdzenia.
 
 ### 5.3. Realizacja Treningu
+
 ---
+
 - ID: US-007
 - Tytuł: Rozpoczęcie i realizacja treningu
 - Opis: Jako użytkownik, chcę wybrać dzisiejszy trening, aby przejść do widoku "na żywo", gdzie będę mógł śledzić swoje postępy.
@@ -123,6 +137,7 @@ Następujące funkcjonalności celowo NIE wchodzą w zakres MVP, aby umożliwić
   6. Na samym dole znajduje się przycisk "Zakończ trening", którym mogę zakończyć trening w kazdym momencie.
 
 ---
+
 - ID: US-008
 - Tytuł: Korzystanie z minutnika przerw
 - Opis: Jako użytkownik, chcę móc uruchomić minutnik po każdej serii, aby precyzyjnie mierzyć czas odpoczynku.
@@ -133,7 +148,9 @@ Następujące funkcjonalności celowo NIE wchodzą w zakres MVP, aby umożliwić
   4. Po zakończeniu odliczania otrzymuję powiadomienie dźwiękowe i/lub wibrację.
 
 ### 5.4. Historia i Progresja
+
 ---
+
 - ID: US-009
 - Tytuł: Zapisywanie treningu w historii
 - Opis: Jako użytkownik, po zakończeniu sesji treningowej chcę, aby została ona automatycznie zapisana w mojej historii.
@@ -143,6 +160,7 @@ Następujące funkcjonalności celowo NIE wchodzą w zakres MVP, aby umożliwić
   3. Po zapisaniu jestem przekierowywany do podsumowania lub listy historycznych treningów.
 
 ---
+
 - ID: US-010
 - Tytuł: Przeglądanie historii treningów
 - Opis: Jako użytkownik, chcę mieć dostęp do listy moich przeszłych treningów, aby śledzić swoją aktywność.
@@ -152,6 +170,7 @@ Następujące funkcjonalności celowo NIE wchodzą w zakres MVP, aby umożliwić
   3. Mogę kliknąć na daną sesję, aby zobaczyć jej szczegóły (wykonane ćwiczenia, serie, ciężary, powtórzenia).
 
 ---
+
 - ID: US-011
 - Tytuł: Planowanie progresji na kolejny cykl
 - Opis: Jako użytkownik, po zakończeniu cyklu treningowego chcę mieć możliwość wygenerowania nowego, trudniejszego planu.

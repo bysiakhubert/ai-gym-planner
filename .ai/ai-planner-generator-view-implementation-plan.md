@@ -32,6 +32,7 @@ Hierarchia komponentów będzie zorganizowana w następujący sposób, aby zapew
 ## 4. Szczegóły komponentów
 
 ### `AiPlannerGeneratorView`
+
 - **Opis komponentu:** Główny komponent React, który zarządza stanem całego widoku (formularz, ładowanie, podgląd, błąd). Odpowiada za komunikację z API i decyduje, który komponent podrzędny (`PlannerForm` czy `PlanPreview`) ma być wyświetlony.
 - **Główne elementy:** Kontener `div`, który warunkowo renderuje `PlannerForm`, `PlanPreview`, lub wskaźnik ładowania.
 - **Obsługiwane zdarzenia:**
@@ -44,6 +45,7 @@ Hierarchia komponentów będzie zorganizowana w następujący sposób, aby zapew
 - **Propsy:** Brak.
 
 ### `PlannerForm`
+
 - **Opis komponentu:** Formularz do zbierania preferencji treningowych użytkownika. Zbudowany z użyciem komponentów `Shadcn/ui` i zarządzany przez `react-hook-form` w celu walidacji.
 - **Główne elementy:** Komponent `<Form>` z `react-hook-form` zawierający `FormField` dla każdego pola: `Select` (cel, system), `Checkbox` (dni), `Slider` (czas trwania sesji, długość cyklu), `Textarea` (uwagi) i `Button` (submit).
 - **Obsługiwane zdarzenia:** `onSubmit(data: UserPreferences)`: Przekazuje zwalidowane dane formularza do komponentu nadrzędnego.
@@ -59,6 +61,7 @@ Hierarchia komponentów będzie zorganizowana w następujący sposób, aby zapew
   - `onSubmit: (preferences: UserPreferences) => void`: Funkcja zwrotna wywoływana po pomyślnej walidacji i submisji.
 
 ### `PlanPreview`
+
 - **Opis komponentu:** Wyświetla podgląd wygenerowanego przez AI planu treningowego. Dane są tylko do odczytu. Komponent zawiera również przyciski akcji oraz klauzulę bezpieczeństwa.
 - **Główne elementy:** Kontener z tytułem planu, datami obowiązywania. Sekcja z komponentem `SafetyDisclaimer`. Mapa renderująca komponenty `WorkoutDayCard` dla każdego dnia w planie. Kontener z przyciskami "Zaakceptuj i zapisz", "Odrzuć", "Edytuj".
 - **Obsługiwane zdarzenia:**
@@ -75,6 +78,7 @@ Hierarchia komponentów będzie zorganizowana w następujący sposób, aby zapew
   - `onEdit: () => void`.
 
 ### `WorkoutDayCard`
+
 - **Opis komponentu:** Komponent prezentacyjny, który renderuje szczegóły pojedynczego dnia treningowego, w tym nazwę dnia oraz listę ćwiczeń wraz z seriami, powtórzeniami i przerwami.
 - **Główne elementy:** Komponent `Card` z `Shadcn/ui` z `CardHeader` (nazwa dnia) i `CardContent` (tabela lub lista ćwiczeń).
 - **Obsługiwane zdarzenia:** Brak.
@@ -87,6 +91,7 @@ Hierarchia komponentów będzie zorganizowana w następujący sposób, aby zapew
 Widok będzie korzystał głównie z typów zdefiniowanych w `src/types.ts`. Nie ma potrzeby tworzenia nowych, kluczowych typów DTO, jednak na potrzeby stanu formularza i podglądu zdefiniujemy modele widoku (ViewModel), które będą bazować na istniejących typach.
 
 - **`PlannerFormViewModel`**: Odpowiada typowi `UserPreferences`. Będzie używany do zarządzania stanem formularza.
+
   ```typescript
   interface UserPreferences {
     goal: string;
@@ -136,6 +141,7 @@ Zarządzanie stanem zostanie scentralizowane w niestandardowym hooku `useAiPlann
 ## 7. Integracja API
 
 ### Generowanie podglądu planu
+
 - **Endpoint:** `POST /api/plans/generate`
 - **Akcja:** Wywoływana przez funkcję `generatePlan` w hooku `useAiPlannerGenerator`.
 - **Typ żądania:** `GeneratePlanRequest`
@@ -152,6 +158,7 @@ Zarządzanie stanem zostanie scentralizowane w niestandardowym hooku `useAiPlann
 - **Typ odpowiedzi:** `GeneratePlanResponse`. Po otrzymaniu odpowiedzi, dane są zapisywane w stanie oraz w `localStorage`, a `viewState` jest zmieniany na `'preview'`.
 
 ### Zapisywanie planu
+
 - **Endpoint:** `POST /api/plans`
 - **Akcja:** Wywoływana przez funkcję `acceptPlan` w hooku `useAiPlannerGenerator`.
 - **Typ żądania:** `CreatePlanRequest`. Obiekt ten jest konstruowany na podstawie danych z `previewData`.
@@ -163,7 +170,7 @@ Zarządzanie stanem zostanie scentralizowane w niestandardowym hooku `useAiPlann
     plan: { schedule: plan.schedule }, // Zgodnie z typem CreatePlanRequest
     source: "ai",
     preferences: preferences,
-    prompt: null // Prompt nie jest obecnie zwracany przez API
+    prompt: null, // Prompt nie jest obecnie zwracany przez API
   };
   ```
 - **Typ odpowiedzi:** `PlanResponse`. Po pomyślnym zapisaniu, `localStorage` jest czyszczony, a użytkownik jest przekierowywany do listy swoich planów.

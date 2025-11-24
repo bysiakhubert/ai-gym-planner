@@ -18,12 +18,11 @@ All API endpoints are prefixed with `/api` and implemented as Astro API routes.
 
 The API exposes the following main resources:
 
-| Resource | Database Table | Description |
-|----------|---------------|-------------|
-| Plans | `plans` | Workout plans with schedules and exercises |
-| Sessions | `training_sessions` | Training session records with actual performance data |
-| Audit Events | `audit_events` | System and user action logs (read-only via API) |
-
+| Resource     | Database Table      | Description                                           |
+| ------------ | ------------------- | ----------------------------------------------------- |
+| Plans        | `plans`             | Workout plans with schedules and exercises            |
+| Sessions     | `training_sessions` | Training session records with actual performance data |
+| Audit Events | `audit_events`      | System and user action logs (read-only via API)       |
 
 ## 3. Endpoints
 
@@ -36,6 +35,7 @@ Generate a training plan using AI based on user preferences. This endpoint retur
 **Endpoint**: `POST /api/plans/generate`
 
 **Request Body**:
+
 ```json
 {
   "preferences": {
@@ -50,6 +50,7 @@ Generate a training plan using AI based on user preferences. This endpoint retur
 ```
 
 **Request Body Schema**:
+
 - `preferences` (object, required):
   - `goal` (string, required): Training goal (e.g., "hypertrophy", "strength", "endurance")
   - `system` (string, required): Training system (e.g., "PPL", "FBW", "Upper/Lower")
@@ -59,6 +60,7 @@ Generate a training plan using AI based on user preferences. This endpoint retur
   - `notes` (string, optional): Additional notes or constraints
 
 **Success Response**: `200 OK`
+
 ```json
 {
   "plan": {
@@ -99,6 +101,7 @@ Generate a training plan using AI based on user preferences. This endpoint retur
 **Error Responses**:
 
 `400 Bad Request` - Invalid input
+
 ```json
 {
   "error": "ValidationError",
@@ -110,6 +113,7 @@ Generate a training plan using AI based on user preferences. This endpoint retur
 ```
 
 `500 Internal Server Error` - AI generation failed
+
 ```json
 {
   "error": "AIGenerationFailed",
@@ -119,12 +123,13 @@ Generate a training plan using AI based on user preferences. This endpoint retur
 ```
 
 **Business Logic**:
+
 1. Validate preferences (required fields, valid values)
-3. Call OpenRouter AI API with formatted prompt
-4. Parse and validate AI response
-5. Calculate effective_from and effective_to based on cycle_duration_weeks
-6. Log `ai_generation_requested` and `ai_generation_completed`/`ai_generation_failed` audit events
-7. Return generated plan preview
+2. Call OpenRouter AI API with formatted prompt
+3. Parse and validate AI response
+4. Calculate effective_from and effective_to based on cycle_duration_weeks
+5. Log `ai_generation_requested` and `ai_generation_completed`/`ai_generation_failed` audit events
+6. Return generated plan preview
 
 ---
 
@@ -135,6 +140,7 @@ Create a new training plan (manual or AI-accepted).
 **Endpoint**: `POST /api/plans`
 
 **Request Body**:
+
 ```json
 {
   "name": "Custom Upper/Lower Split",
@@ -150,9 +156,7 @@ Create a new training plan (manual or AI-accepted).
         "exercises": [
           {
             "name": "Bench Press",
-            "sets": [
-              { "reps": 8, "weight": 80.0, "rest_seconds": 180 }
-            ]
+            "sets": [{ "reps": 8, "weight": 80.0, "rest_seconds": 180 }]
           }
         ]
       }
@@ -162,6 +166,7 @@ Create a new training plan (manual or AI-accepted).
 ```
 
 **Request Body Schema**:
+
 - `name` (string, required): Plan name (1-100 characters)
 - `effective_from` (string, required): ISO 8601 timestamp for cycle start
 - `effective_to` (string, required): ISO 8601 timestamp for cycle end
@@ -171,6 +176,7 @@ Create a new training plan (manual or AI-accepted).
 - `plan` (object, required): Plan structure with schedule
 
 **Success Response**: `201 Created`
+
 ```json
 {
   "id": "550e8400-e29b-41d4-a716-446655440000",
@@ -188,9 +194,7 @@ Create a new training plan (manual or AI-accepted).
         "exercises": [
           {
             "name": "Bench Press",
-            "sets": [
-              { "reps": 8, "weight": 80.0, "rest_seconds": 180 }
-            ]
+            "sets": [{ "reps": 8, "weight": 80.0, "rest_seconds": 180 }]
           }
         ],
         "done": false
@@ -205,6 +209,7 @@ Create a new training plan (manual or AI-accepted).
 **Error Responses**:
 
 `400 Bad Request` - Validation error
+
 ```json
 {
   "error": "ValidationError",
@@ -217,6 +222,7 @@ Create a new training plan (manual or AI-accepted).
 ```
 
 **Business Logic**:
+
 1. Validate all required fields
 2. Validate source field ('ai' or 'manual')
 3. Validate effective_to > effective_from
@@ -236,12 +242,14 @@ Retrieve all active training plans for authenticated user.
 **Endpoint**: `GET /api/plans`
 
 **Query Parameters**:
+
 - `limit` (number, optional): Number of results per page (default: 20, max: 100)
 - `offset` (number, optional): Pagination offset (default: 0)
 - `sort` (string, optional): Sort field (default: "effective_from", options: "effective_from", "created_at", "name")
 - `order` (string, optional): Sort order (default: "desc", options: "asc", "desc")
 
 **Success Response**: `200 OK`
+
 ```json
 {
   "plans": [
@@ -275,9 +283,11 @@ Retrieve complete details for a specific training plan.
 **Endpoint**: `GET /api/plans/:id`
 
 **Path Parameters**:
+
 - `id` (uuid, required): Plan ID
 
 **Success Response**: `200 OK`
+
 ```json
 {
   "id": "550e8400-e29b-41d4-a716-446655440000",
@@ -299,9 +309,7 @@ Retrieve complete details for a specific training plan.
         "exercises": [
           {
             "name": "Bench Press",
-            "sets": [
-              { "reps": 8, "weight": 80.0, "rest_seconds": 180 }
-            ]
+            "sets": [{ "reps": 8, "weight": 80.0, "rest_seconds": 180 }]
           }
         ],
         "done": false
@@ -316,6 +324,7 @@ Retrieve complete details for a specific training plan.
 **Error Responses**:
 
 `404 Not Found`
+
 ```json
 {
   "error": "NotFound",
@@ -332,9 +341,11 @@ Retrieve the workout scheduled for next session from a specific plan.
 **Endpoint**: `GET /api/plans/:id/next`
 
 **Path Parameters**:
+
 - `id` (uuid, required): Plan ID
 
 **Success Response**: `200 OK`
+
 ```json
 {
   "date": "2025-01-15",
@@ -364,6 +375,7 @@ Retrieve the workout scheduled for next session from a specific plan.
 ```
 
 **Success Response (No Workout)**: `200 OK`
+
 ```json
 {
   "workout": null,
@@ -376,6 +388,7 @@ Retrieve the workout scheduled for next session from a specific plan.
 **Error Responses**:
 
 `404 Not Found`
+
 ```json
 {
   "error": "NotFound",
@@ -384,6 +397,7 @@ Retrieve the workout scheduled for next session from a specific plan.
 ```
 
 `400 Bad Request`
+
 ```json
 {
   "error": "ValidationError",
@@ -392,6 +406,7 @@ Retrieve the workout scheduled for next session from a specific plan.
 ```
 
 **Business Logic**:
+
 1. Retrieve plan by ID (RLS ensures user ownership)
 2. Determine target date (query param or today in user's timezone)
 3. Extract workout from plan.schedule[date]
@@ -406,11 +421,13 @@ Update an existing training plan.
 **Endpoint**: `PUT /api/plans/:id`
 
 **Path Parameters**:
+
 - `id` (uuid, required): Plan ID
 
 **Request Body**: Same structure as Create Plan (all fields required)
 
 **Success Response**: `200 OK`
+
 ```json
 {
   "id": "550e8400-e29b-41d4-a716-446655440000",
@@ -431,9 +448,7 @@ Update an existing training plan.
         "exercises": [
           {
             "name": "Bench Press",
-            "sets": [
-              { "reps": 10, "weight": 85.0, "rest_seconds": 180 }
-            ]
+            "sets": [{ "reps": 10, "weight": 85.0, "rest_seconds": 180 }]
           }
         ],
         "done": true
@@ -449,6 +464,7 @@ Update an existing training plan.
 **Error Responses**:
 
 `404 Not Found`
+
 ```json
 {
   "error": "NotFound",
@@ -457,6 +473,7 @@ Update an existing training plan.
 ```
 
 `400 Bad Request`
+
 ```json
 {
   "error": "ValidationError",
@@ -468,6 +485,7 @@ Update an existing training plan.
 ```
 
 `409 Conflict`
+
 ```json
 {
   "error": "DateOverlapError",
@@ -477,6 +495,7 @@ Update an existing training plan.
 ```
 
 **Business Logic**:
+
 1. Verify plan exists and user owns it (RLS)
 2. Validate all fields (same as create)
 3. Check for date overlaps with other plans (excluding current plan)
@@ -494,9 +513,11 @@ Archive a training plan (soft delete).
 **Endpoint**: `DELETE /api/plans/:id`
 
 **Path Parameters**:
+
 - `id` (uuid, required): Plan ID
 
 **Success Response**: `200 OK`
+
 ```json
 {
   "message": "Plan archived successfully",
@@ -507,6 +528,7 @@ Archive a training plan (soft delete).
 **Error Responses**:
 
 `404 Not Found`
+
 ```json
 {
   "error": "NotFound",
@@ -515,6 +537,7 @@ Archive a training plan (soft delete).
 ```
 
 **Business Logic**:
+
 1. Verify plan exists and user owns it (RLS)
 2. Set archived=true (soft delete)
 3. Associated sessions remain accessible
@@ -529,9 +552,11 @@ Generate a new training plan based on completed cycle history using AI.
 **Endpoint**: `POST /api/plans/:id/generate-next`
 
 **Path Parameters**:
+
 - `id` (uuid, required): Current plan ID to base progression on
 
 **Request Body**:
+
 ```json
 {
   "cycle_duration_weeks": 6,
@@ -540,10 +565,12 @@ Generate a new training plan based on completed cycle history using AI.
 ```
 
 **Request Body Schema**:
+
 - `cycle_duration_weeks` (number, required): Duration of new cycle in weeks
 - `notes` (string, optional): Additional instructions for AI
 
 **Success Response**: `200 OK`
+
 ```json
 {
   "plan": {
@@ -556,9 +583,7 @@ Generate a new training plan based on completed cycle history using AI.
         "exercises": [
           {
             "name": "Bench Press",
-            "sets": [
-              { "reps": 8, "weight": 85.0, "rest_seconds": 180 }
-            ]
+            "sets": [{ "reps": 8, "weight": 85.0, "rest_seconds": 180 }]
           }
         ]
       }
@@ -580,6 +605,7 @@ Generate a new training plan based on completed cycle history using AI.
 **Error Responses**:
 
 `404 Not Found`
+
 ```json
 {
   "error": "NotFound",
@@ -588,6 +614,7 @@ Generate a new training plan based on completed cycle history using AI.
 ```
 
 `400 Bad Request`
+
 ```json
 {
   "error": "ValidationError",
@@ -596,6 +623,7 @@ Generate a new training plan based on completed cycle history using AI.
 ```
 
 **Business Logic**:
+
 1. Verify plan exists and user owns it
 2. Retrieve all completed sessions for the plan
 3. Validate that plan has sessions (has_sessions=true)
@@ -617,6 +645,7 @@ Create and start a new training session.
 **Endpoint**: `POST /api/sessions`
 
 **Request Body**:
+
 ```json
 {
   "plan_id": "550e8400-e29b-41d4-a716-446655440000",
@@ -645,6 +674,7 @@ Create and start a new training session.
 ```
 
 **Request Body Schema**:
+
 - `plan_id` (uuid, required): ID of plan this session belongs to
 - `date` (string, required): ISO date (YYYY-MM-DD) of the workout
 - `session` (object, required): Session structure
@@ -654,6 +684,7 @@ Create and start a new training session.
   - `exercises` (array, required): Array of exercises with sets
 
 **Success Response**: `201 Created`
+
 ```json
 {
   "id": "870e8400-e29b-41d4-a716-446655440002",
@@ -688,6 +719,7 @@ Create and start a new training session.
 **Error Responses**:
 
 `400 Bad Request`
+
 ```json
 {
   "error": "ValidationError",
@@ -699,6 +731,7 @@ Create and start a new training session.
 ```
 
 `409 Conflict`
+
 ```json
 {
   "error": "ConflictError",
@@ -708,6 +741,7 @@ Create and start a new training session.
 ```
 
 **Business Logic**:
+
 1. Validate plan_id exists and belongs to user
 2. Check for existing in-progress session (ended_at IS NULL)
 3. Validate session structure
@@ -726,9 +760,11 @@ Update session data during training (actual values, completed sets).
 **Endpoint**: `PATCH /api/sessions/:id`
 
 **Path Parameters**:
+
 - `id` (uuid, required): Session ID
 
 **Request Body**: Partial update of session data
+
 ```json
 {
   "session": {
@@ -763,6 +799,7 @@ Update session data during training (actual values, completed sets).
 ```
 
 **Success Response**: `200 OK`
+
 ```json
 {
   "id": "870e8400-e29b-41d4-a716-446655440002",
@@ -805,6 +842,7 @@ Update session data during training (actual values, completed sets).
 **Error Responses**:
 
 `404 Not Found`
+
 ```json
 {
   "error": "NotFound",
@@ -813,6 +851,7 @@ Update session data during training (actual values, completed sets).
 ```
 
 `400 Bad Request`
+
 ```json
 {
   "error": "ValidationError",
@@ -821,6 +860,7 @@ Update session data during training (actual values, completed sets).
 ```
 
 **Business Logic**:
+
 1. Verify session exists and user owns it
 2. Verify session is in progress (ended_at IS NULL)
 3. Update session data
@@ -836,9 +876,11 @@ Mark a session as completed.
 **Endpoint**: `POST /api/sessions/:id/complete`
 
 **Path Parameters**:
+
 - `id` (uuid, required): Session ID
 
 **Request Body**: None (optional final session data update)
+
 ```json
 {
   "session": {
@@ -865,6 +907,7 @@ Mark a session as completed.
 ```
 
 **Success Response**: `200 OK`
+
 ```json
 {
   "id": "870e8400-e29b-41d4-a716-446655440002",
@@ -899,6 +942,7 @@ Mark a session as completed.
 **Error Responses**:
 
 `404 Not Found`
+
 ```json
 {
   "error": "NotFound",
@@ -907,6 +951,7 @@ Mark a session as completed.
 ```
 
 `400 Bad Request`
+
 ```json
 {
   "error": "ValidationError",
@@ -915,6 +960,7 @@ Mark a session as completed.
 ```
 
 **Business Logic**:
+
 1. Verify session exists and user owns it
 2. Verify session is in progress (ended_at IS NULL)
 3. If session data provided in body, update it first
@@ -932,6 +978,7 @@ Retrieve training sessions for authenticated user with filtering and pagination.
 **Endpoint**: `GET /api/sessions`
 
 **Query Parameters**:
+
 - `plan_id` (uuid, optional): Filter by plan ID
 - `date_from` (string, optional): Filter sessions from date (ISO 8601)
 - `date_to` (string, optional): Filter sessions to date (ISO 8601)
@@ -942,6 +989,7 @@ Retrieve training sessions for authenticated user with filtering and pagination.
 - `order` (string, optional): Sort order (default: "desc")
 
 **Success Response**: `200 OK`
+
 ```json
 {
   "sessions": [
@@ -978,9 +1026,11 @@ Retrieve complete details for a specific training session.
 **Endpoint**: `GET /api/sessions/:id`
 
 **Path Parameters**:
+
 - `id` (uuid, required): Session ID
 
 **Success Response**: `200 OK`
+
 ```json
 {
   "id": "870e8400-e29b-41d4-a716-446655440002",
@@ -1036,6 +1086,7 @@ Retrieve complete details for a specific training session.
 **Error Responses**:
 
 `404 Not Found`
+
 ```json
 {
   "error": "NotFound",
@@ -1056,6 +1107,7 @@ Retrieve audit events for authenticated user.
 **Endpoint**: `GET /api/audit-events`
 
 **Query Parameters**:
+
 - `event_type` (string, optional): Filter by event type
 - `entity_type` (string, optional): Filter by entity type ('plan', 'session')
 - `entity_id` (uuid, optional): Filter by entity ID
@@ -1065,6 +1117,7 @@ Retrieve audit events for authenticated user.
 - `offset` (number, optional): Pagination offset (default: 0)
 
 **Success Response**: `200 OK`
+
 ```json
 {
   "events": [
@@ -1092,6 +1145,7 @@ Retrieve audit events for authenticated user.
 ```
 
 **Event Types**:
+
 - `ai_generation_requested`
 - `ai_generation_completed`
 - `ai_generation_failed`
@@ -1110,6 +1164,7 @@ Retrieve audit events for authenticated user.
 All endpoints may return the following common error responses:
 
 ### 401 Unauthorized
+
 ```json
 {
   "error": "Unauthorized",
@@ -1118,6 +1173,7 @@ All endpoints may return the following common error responses:
 ```
 
 ### 403 Forbidden
+
 ```json
 {
   "error": "Forbidden",
@@ -1126,6 +1182,7 @@ All endpoints may return the following common error responses:
 ```
 
 ### 500 Internal Server Error
+
 ```json
 {
   "error": "InternalServerError",
@@ -1135,6 +1192,7 @@ All endpoints may return the following common error responses:
 ```
 
 ### 503 Service Unavailable
+
 ```json
 {
   "error": "ServiceUnavailable",
@@ -1149,6 +1207,7 @@ All endpoints may return the following common error responses:
 ### 5.1. Plans Validation
 
 **Required Fields**:
+
 - `name`: 1-100 characters, not empty
 - `effective_from`: Valid ISO 8601 timestamp
 - `effective_to`: Valid ISO 8601 timestamp, must be after effective_from
@@ -1156,6 +1215,7 @@ All endpoints may return the following common error responses:
 - `plan`: Must be valid JSON object with 'schedule' property
 
 **Business Rules**:
+
 1. **Date Overlap Prevention**: Before creating or updating a plan, check that effective_from/effective_to don't overlap with any existing non-archived plan for the same user
 2. **Source Consistency**: If source='ai', prompt should be provided; if source='manual', prompt should be null
 3. **Plan Structure**: plan.schedule must be object with ISO date keys (YYYY-MM-DD)
@@ -1164,17 +1224,20 @@ All endpoints may return the following common error responses:
 6. **Set Properties**: Each set must have 'reps' (number), optional 'weight' (number), and 'rest_seconds' (integer)
 
 **Immutability Rules**:
+
 - Once a plan has sessions (has_sessions=true), certain modifications may require user confirmation (implemented in UI, not API)
 - Modifying plan does NOT affect existing sessions (snapshot model)
 
 ### 5.2. Sessions Validation
 
 **Required Fields**:
+
 - `plan_id`: Must reference existing plan owned by user
 - `session`: Must be valid JSON with complete structure
 - `started_at`: Must be valid timestamp
 
 **Business Rules**:
+
 1. **Single Active Session**: User can only have one in-progress session at a time (ended_at IS NULL)
 2. **Session Completion**: ended_at must be after started_at
 3. **Immutability After Completion**: Once ended_at is set, session should not be modified (enforced in application layer)
@@ -1184,11 +1247,13 @@ All endpoints may return the following common error responses:
 ### 5.3. AI Generation
 
 **Rate Limiting**:
+
 - Maximum 10 AI generation requests per hour per user
 - Applies to both /api/plans/generate and /api/plans/:id/generate-next
 - Returns 429 Too Many Requests with retry_after header
 
 **Input Validation**:
+
 - `available_days`: Must contain at least 1 day
 - `cycle_duration_weeks`: Must be between 1 and 52 weeks
 - `session_duration_minutes`: Must be between 15 and 240 minutes
@@ -1196,6 +1261,7 @@ All endpoints may return the following common error responses:
 - `system`: Must be non-empty string
 
 **AI Error Handling**:
+
 - Log all AI requests and responses to audit_events
 - If AI returns invalid JSON or structure, return 500 with user-friendly message
 - Implement timeout (30 seconds) for AI requests
@@ -1204,6 +1270,7 @@ All endpoints may return the following common error responses:
 ### 5.4. Timezone Handling
 
 **Date Conversions**:
+
 - All timestamps stored in database as UTC (timestamptz)
 - Plan effective_from represents start of day (00:00:00) in user's local timezone
 - Plan effective_to represents end of day (23:59:59) in user's local timezone
@@ -1211,6 +1278,7 @@ All endpoints may return the following common error responses:
 - Frontend should send user's timezone when relevant
 
 **Example**:
+
 ```typescript
 // User in Europe/Warsaw (UTC+1) creates plan for 2025-01-15
 // Frontend sends: effective_from = "2025-01-15T00:00:00+01:00"
@@ -1221,18 +1289,18 @@ All endpoints may return the following common error responses:
 
 All significant operations must log audit events:
 
-| Operation | Event Type | Payload |
-|-----------|------------|---------|
-| Generate AI plan (request) | ai_generation_requested | preferences, model |
+| Operation                  | Event Type              | Payload                           |
+| -------------------------- | ----------------------- | --------------------------------- |
+| Generate AI plan (request) | ai_generation_requested | preferences, model                |
 | Generate AI plan (success) | ai_generation_completed | model, tokens, generation_time_ms |
-| Generate AI plan (failure) | ai_generation_failed | error, model |
-| Accept AI plan | plan_accepted | plan_id |
-| Reject AI plan | plan_rejected | None |
-| Create plan | plan_created | plan_id, source |
-| Update plan | plan_updated | plan_id, changes_summary |
-| Archive plan | plan_deleted | plan_id |
-| Start session | session_started | session_id, plan_id |
-| Complete session | session_completed | session_id, duration_minutes |
+| Generate AI plan (failure) | ai_generation_failed    | error, model                      |
+| Accept AI plan             | plan_accepted           | plan_id                           |
+| Reject AI plan             | plan_rejected           | None                              |
+| Create plan                | plan_created            | plan_id, source                   |
+| Update plan                | plan_updated            | plan_id, changes_summary          |
+| Archive plan               | plan_deleted            | plan_id                           |
+| Start session              | session_started         | session_id, plan_id               |
+| Complete session           | session_completed       | session_id, duration_minutes      |
 
 ---
 
@@ -1241,6 +1309,7 @@ All significant operations must log audit events:
 ### 6.1. Pagination
 
 All list endpoints support pagination:
+
 - Default limit: 20-50 items
 - Maximum limit: 100-200 items
 - Use offset-based pagination for MVP
@@ -1362,6 +1431,7 @@ All list endpoints support pagination:
 ### 10.2. Metrics
 
 Track key metrics:
+
 - Request rate per endpoint
 - Response time percentiles (p50, p95, p99)
 - Error rate by endpoint and error type
@@ -1371,6 +1441,7 @@ Track key metrics:
 ### 10.3. Alerting
 
 Set up alerts for:
+
 - Error rate > threshold
 - Response time > threshold
 - AI generation failures
@@ -1381,6 +1452,7 @@ Set up alerts for:
 ## 11. Implementation Checklist
 
 ### Phase 1: Core CRUD Operations
+
 - [ ] Implement authentication middleware
 - [ ] POST /api/plans (manual plans)
 - [ ] GET /api/plans (list)
@@ -1394,12 +1466,14 @@ Set up alerts for:
 - [ ] GET /api/sessions/:id (details)
 
 ### Phase 2: AI Integration
+
 - [ ] POST /api/plans/generate (AI generation)
 - [ ] POST /api/plans/:id/generate-next (progression)
 - [ ] Implement rate limiting for AI endpoints
 - [ ] Implement audit logging for AI events
 
 ### Phase 3: Advanced Features
+
 - [ ] GET /api/plans/:id/today (today's workout)
 - [ ] POST /api/plans/:id/continue (duplicate)
 - [ ] GET /api/audit-events (audit log access)
@@ -1407,6 +1481,7 @@ Set up alerts for:
 - [ ] Add filtering and sorting support
 
 ### Phase 4: Optimization
+
 - [ ] Add database indexes
 - [ ] Implement caching
 - [ ] Optimize query performance
@@ -1425,7 +1500,7 @@ interface CreatePlanRequest {
   name: string;
   effective_from: string;
   effective_to: string;
-  source: 'ai' | 'manual';
+  source: "ai" | "manual";
   prompt?: string | null;
   preferences: Record<string, any>;
   plan: PlanStructure;
@@ -1437,7 +1512,7 @@ interface PlanResponse {
   name: string;
   effective_from: string;
   effective_to: string;
-  source: 'ai' | 'manual';
+  source: "ai" | "manual";
   prompt: string | null;
   preferences: Record<string, any>;
   plan: PlanStructure;
@@ -1518,8 +1593,8 @@ interface GeneratePlanRequest {
 }
 
 interface GeneratePlanResponse {
-  plan: Omit<PlanResponse, 'id' | 'user_id' | 'archived' | 'created_at' | 'updated_at'>;
-  preferences: GeneratePlanRequest['preferences'];
+  plan: Omit<PlanResponse, "id" | "user_id" | "archived" | "created_at" | "updated_at">;
+  preferences: GeneratePlanRequest["preferences"];
   metadata: {
     model: string;
     generation_time_ms: number;
@@ -1550,4 +1625,3 @@ interface ApiError {
 **API Version**: 1.0.0  
 **Last Updated**: 2025-11-05  
 **Status**: Ready for Implementation
-

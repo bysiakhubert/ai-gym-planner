@@ -37,6 +37,7 @@ CREATE TABLE plans (
 ```
 
 **Column Descriptions:**
+
 - `id`: Unique identifier for the plan
 - `user_id`: Reference to the plan owner in Supabase Auth
 - `name`: User-defined name for the plan
@@ -52,6 +53,7 @@ CREATE TABLE plans (
 - `updated_at`: Timestamp of last modification
 
 **Plan JSON Structure Example:**
+
 ```json
 {
   "schedule": {
@@ -73,6 +75,7 @@ CREATE TABLE plans (
 ```
 
 **Numeric Value Semantics:**
+
 - `reps`: numeric(5,2) - allows decimal reps for partial ROM or tempo work
 - `weight`: numeric(6,2) - weight in kg with 2 decimal precision
 - `rest_seconds`: integer - rest time in seconds
@@ -96,6 +99,7 @@ CREATE TABLE training_sessions (
 ```
 
 **Column Descriptions:**
+
 - `id`: Unique identifier for the session
 - `user_id`: Reference to the session owner (denormalized for RLS performance)
 - `plan_id`: Reference to the plan this session belongs to
@@ -105,6 +109,7 @@ CREATE TABLE training_sessions (
 - `created_at`: Timestamp when the record was created (for audit purposes)
 
 **Session JSON Structure Example:**
+
 ```json
 {
   "plan_name": "PPL Week 1",
@@ -147,6 +152,7 @@ CREATE TABLE audit_events (
 ```
 
 **Column Descriptions:**
+
 - `id`: Unique identifier for the event
 - `user_id`: Reference to the user who triggered the event
 - `event_type`: Type of event (see Event Types below)
@@ -156,6 +162,7 @@ CREATE TABLE audit_events (
 - `created_at`: Timestamp when the event occurred
 
 **Event Types:**
+
 - `ai_generation_requested`: User initiated AI plan generation
 - `ai_generation_completed`: AI successfully generated a plan
 - `ai_generation_failed`: AI generation failed
@@ -168,6 +175,7 @@ CREATE TABLE audit_events (
 - `session_completed`: Training session finished
 
 **Payload Example for AI Events:**
+
 ```json
 {
   "model": "anthropic/claude-3.5-sonnet",
@@ -230,6 +238,7 @@ auth.users (Supabase Auth)
 **Note**: In MVP, indexes are intentionally omitted to simplify initial development. Indexes should be added in future iterations based on actual query patterns and performance profiling.
 
 **Recommended indexes for post-MVP:**
+
 ```sql
 -- For plans
 CREATE INDEX idx_plans_user_id ON plans(user_id) WHERE NOT archived;
@@ -369,16 +378,12 @@ CREATE TRIGGER update_plans_updated_at
 **Implementation**: Enforced in application layer, not database. This provides flexibility for edge cases (e.g., transitioning between plans, adjusting dates retrospectively).
 
 **Validation Logic** (pseudo-code for application):
+
 ```typescript
 // Before creating/updating a plan
-const hasOverlap = await checkPlanOverlap(
-  userId,
-  effectiveFrom,
-  effectiveTo,
-  excludePlanId
-);
+const hasOverlap = await checkPlanOverlap(userId, effectiveFrom, effectiveTo, excludePlanId);
 if (hasOverlap) {
-  throw new Error('Plan dates overlap with existing plan');
+  throw new Error("Plan dates overlap with existing plan");
 }
 ```
 
@@ -387,6 +392,7 @@ if (hasOverlap) {
 **Challenge**: Plan JSON uses local dates (`YYYY-MM-DD`), while database uses `timestamptz`.
 
 **Approach**:
+
 - Store all timestamps in UTC (`timestamptz`)
 - Application layer converts user's local date to UTC timestamp
 - When matching sessions to plan days, compare dates in user's timezone
@@ -394,15 +400,13 @@ if (hasOverlap) {
 - `effective_to` represents end of day (23:59:59) in user's local timezone
 
 **Example**:
+
 ```typescript
 // User in Europe/Warsaw (UTC+1) creates plan for 2025-01-15
-const effectiveFrom = zonedTimeToUtc(
-  '2025-01-15 00:00:00',
-  'Europe/Warsaw'
-); // Stored as 2025-01-14 23:00:00 UTC
+const effectiveFrom = zonedTimeToUtc("2025-01-15 00:00:00", "Europe/Warsaw"); // Stored as 2025-01-14 23:00:00 UTC
 
 // When finding today's workout
-const userDate = format(new Date(), 'yyyy-MM-DD', { timeZone: userTimezone });
+const userDate = format(new Date(), "yyyy-MM-DD", { timeZone: userTimezone });
 const workout = plan.schedule[userDate];
 ```
 
@@ -411,6 +415,7 @@ const workout = plan.schedule[userDate];
 **Behavior**: Users can modify plans at any time. Existing sessions remain unchanged (snapshot model).
 
 **Implications**:
+
 - Sessions store complete planned data at the time of training
 - Historical sessions show what was actually planned, not current plan state
 - Comparison between sessions shows actual progression over time
@@ -421,11 +426,13 @@ const workout = plan.schedule[userDate];
 **Rationale**: Preserve historical data for analytics and user history.
 
 **Implementation**:
+
 - Plans: Set `archived = true` instead of DELETE
 - Sessions: Keep associated with archived plans (cascade prevented by archiving)
 - Audit events: Never deleted (append-only log)
 
 **Query Patterns**:
+
 ```sql
 -- Active plans only
 SELECT * FROM plans WHERE user_id = $1 AND NOT archived;
@@ -439,11 +446,13 @@ SELECT * FROM plans WHERE user_id = $1 ORDER BY effective_from DESC;
 **Purpose**: Quick indicator that a plan has been started/used.
 
 **Use Cases**:
+
 - UI can show "In Progress" badge
 - Prevent certain modifications once training has begun
 - Analytics: distinguish between created-but-unused plans
 
 **Update Strategy**:
+
 - Set to `true` when first session is created for the plan
 - Never set back to `false` (even if sessions are deleted)
 - Updated via application logic or database trigger:
@@ -471,6 +480,7 @@ CREATE TRIGGER update_plan_sessions_flag
 **MVP Approach**: No database-level JSON schema validation.
 
 **Post-MVP Consideration**: Add CHECK constraints with `jsonb_matches_schema()`:
+
 ```sql
 -- Example (PostgreSQL 16+)
 ALTER TABLE plans
@@ -484,12 +494,14 @@ CHECK (jsonb_matches_schema(
 ### 7. Normalization vs. Denormalization
 
 **Choice**: Hybrid approach
+
 - **Normalized**: Core entities (users, plans, sessions) in separate tables
-- **Denormalized**: 
+- **Denormalized**:
   - `user_id` in `training_sessions` (avoids JOIN for RLS)
   - Complete plan/session data in JSON (avoids complex JOINs for display)
 
 **Trade-offs**:
+
 - ✅ Faster reads (no joins needed for workout display)
 - ✅ Schema flexibility (JSON can evolve without migrations)
 - ✅ Simplified RLS policies
@@ -501,6 +513,7 @@ CHECK (jsonb_matches_schema(
 **Current Scale**: MVP expects <1000 users, <10 plans per user, <100 sessions per user per year.
 
 **Future Optimizations** (when needed):
+
 1. Add indexes (see Indexes section)
 2. Partition `training_sessions` by user_id or created_at
 3. Partition `audit_events` by created_at (monthly partitions)
@@ -510,6 +523,7 @@ CHECK (jsonb_matches_schema(
 ### 9. Backup and Recovery
 
 **Recommendations**:
+
 - Enable Supabase automatic backups (default: daily)
 - Point-in-time recovery (PITR) for last 7 days minimum
 - Export critical data (plans, sessions) periodically for disaster recovery
@@ -539,6 +553,7 @@ CHECK (jsonb_matches_schema(
 ## Example Queries
 
 ### Get Active Plans for User
+
 ```sql
 SELECT *
 FROM plans
@@ -549,6 +564,7 @@ WHERE user_id = auth.uid()
 ```
 
 ### Get Today's Workout
+
 ```sql
 -- Application determines today's date in user's timezone (e.g., '2025-01-15')
 -- Then extracts from plan JSON:
@@ -564,6 +580,7 @@ WHERE user_id = auth.uid()
 ```
 
 ### Get Recent Sessions for Plan
+
 ```sql
 SELECT *
 FROM training_sessions
@@ -574,6 +591,7 @@ LIMIT 10;
 ```
 
 ### Get AI Generation Success Rate
+
 ```sql
 SELECT
   COUNT(*) FILTER (WHERE event_type = 'ai_generation_requested') as requested,
@@ -593,12 +611,14 @@ WHERE user_id = auth.uid()
 ## Compliance and Security
 
 ### Data Privacy
+
 - User data is isolated via RLS
 - No shared data between users
 - Supabase Auth handles authentication securely
 - Consider GDPR compliance: allow full data export and deletion
 
 ### API Security
+
 - Use Supabase Client with user JWT for all operations
 - Never expose service role key to frontend
 - API endpoints should verify auth.uid() matches requested user_id
@@ -618,7 +638,7 @@ type Plan = {
   name: string;
   effective_from: string; // ISO timestamp
   effective_to: string;
-  source: 'ai' | 'manual';
+  source: "ai" | "manual";
   prompt: string | null;
   preferences: Record<string, any>;
   plan: PlanStructure;

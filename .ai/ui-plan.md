@@ -15,6 +15,7 @@ Zarządzanie stanem opiera się na kontekście React dla danych globalnych (np. 
 ---
 
 #### **Nazwa widoku:** Logowanie
+
 - **Ścieżka:** `/login`
 - **Główny cel:** Uwierzytelnienie istniejącego użytkownika.
 - **Kluczowe informacje:** Pola na adres e-mail i hasło, link do strony rejestracji.
@@ -22,6 +23,7 @@ Zarządzanie stanem opiera się na kontekście React dla danych globalnych (np. 
 - **UX, dostępność i względy bezpieczeństwa:** Komunikaty zwrotne dla walidacji pól. Dostępne etykiety dla pól formularza.
 
 #### **Nazwa widoku:** Rejestracja
+
 - **Ścieżka:** `/register`
 - **Główny cel:** Umożliwienie nowym użytkownikom założenia konta.
 - **Kluczowe informacje:** Pola na e-mail, hasło i jego potwierdzenie. Checkbox do akceptacji klauzuli bezpieczeństwa. Link do strony logowania.
@@ -33,6 +35,7 @@ Zarządzanie stanem opiera się na kontekście React dla danych globalnych (np. 
 ---
 
 #### **Nazwa widoku:** Pulpit główny (Dashboard)
+
 - **Ścieżka:** `/`
 - **Główny cel:** Zapewnienie szybkiego dostępu do najbliższego treningu i motywowanie do działania.
 - **Kluczowe informacje:** Chronologiczna, zagregowana lista nadchodzących treningów ze wszystkich aktywnych planów (data, nazwa dnia, nazwa treningu).
@@ -43,6 +46,7 @@ Zarządzanie stanem opiera się na kontekście React dla danych globalnych (np. 
 - **UX, dostępność i względy bezpieczeństwa:** Najważniejsza akcja (rozpoczęcie treningu) jest wyraźnie widoczna. Stan pusty aktywnie kieruje użytkownika do kolejnych kroków.
 
 #### **Nazwa widoku:** Lista Planów
+
 - **Ścieżka:** `/plans`
 - **Główny cel:** Umożliwienie użytkownikowi przeglądania i zarządzania wszystkimi swoimi planami treningowymi.
 - **Kluczowe informacje:** Lista planów z nazwą, datami obowiązywania (`effective_from`, `effective_to`) oraz statusem ("Aktywny", "Nadchodzący", "Zakończony").
@@ -50,6 +54,7 @@ Zarządzanie stanem opiera się na kontekście React dla danych globalnych (np. 
 - **UX, dostępność i względy bezpieczeństwa:** Czytelne oznaczenie statusu każdego planu. Akcja archiwizacji wymaga potwierdzenia w modalu.
 
 #### **Nazwa widoku:** Szczegóły Planu
+
 - **Ścieżka:** `/plans/:id`
 - **Główny cel:** Wyświetlenie pełnej struktury wybranego planu.
 - **Kluczowe informacje:** Nazwa planu, daty, pełna lista dni treningowych z ćwiczeniami, seriami, powtórzeniami i przerwami.
@@ -57,6 +62,7 @@ Zarządzanie stanem opiera się na kontekście React dla danych globalnych (np. 
 - **UX, dostępność i względy bezpieczeństwa:** Długie plany są prezentowane w sposób czytelny, z wyraźnymi separatorami między dniami.
 
 #### **Nazwa widoku:** Tworzenie / Edycja Planu
+
 - **Ścieżka:** `/plans/new`, `/plans/:id/edit`
 - **Główny cel:** Manualne tworzenie lub modyfikacja planu treningowego.
 - **Kluczowe informacje:** Formularz z nazwą planu, datami. Interfejs do dynamicznego dodawania/edycji/usuwania dni, ćwiczeń i serii.
@@ -64,6 +70,7 @@ Zarządzanie stanem opiera się na kontekście React dla danych globalnych (np. 
 - **UX, dostępność i względy bezpieczeństwa:** Interfejs musi być intuicyjny i łatwy w obsłudze na urządzeniach mobilnych. W przypadku błędu `409 Conflict` wyświetlany jest komunikat z linkiem do planu powodującego konflikt.
 
 #### **Nazwa widoku:** Generator Planu AI (Formularz)
+
 - **Ścieżka:** `/generate`
 - **Główny cel:** Zebranie od użytkownika preferencji potrzebnych do wygenerowania planu przez AI.
 - **Kluczowe informacje:** Formularz zawierający: cel, system treningowy, dostępne dni, czas trwania sesji, długość cyklu, dodatkowe uwagi.
@@ -71,6 +78,7 @@ Zarządzanie stanem opiera się na kontekście React dla danych globalnych (np. 
 - **UX, dostępność i względy bezpieczeństwa:** Pola formularza powinny zawierać podpowiedzi lub opisy, aby ułatwić wybór.
 
 #### **Nazwa widoku:** Generator Planu AI (Podgląd)
+
 - **Ścieżka:** `/generate/preview` (stan przechowywany w `localStorage` lub parametrach URL)
 - **Główny cel:** Prezentacja wygenerowanego planu i umożliwienie użytkownikowi podjęcia decyzji.
 - **Kluczowe informacje:** Podgląd planu (tylko do odczytu). Wyraźnie widoczna klauzula bezpieczeństwa.
@@ -78,6 +86,7 @@ Zarządzanie stanem opiera się na kontekście React dla danych globalnych (np. 
 - **UX, dostępność i względy bezpieczeństwa:** Stan ładowania podczas generowania planu. Użytkownik ma pełną kontrolę nad wygenerowaną treścią.
 
 #### **Nazwa widoku:** Sesja Treningowa
+
 - **Ścieżka:** `/session/active`
 - **Główny cel:** Interaktywne wsparcie użytkownika podczas realizacji treningu.
 - **Kluczowe informacje:** Lista ćwiczeń i serii na dany dzień, z planowanymi wartościami (powtórzenia, ciężar).
@@ -90,6 +99,7 @@ Zarządzanie stanem opiera się na kontekście React dla danych globalnych (np. 
 - **UX, dostępność i względy bezpieczeństwa:** Duże, łatwe do kliknięcia elementy interfejsu (przyciski, checkboxy). Minutnik wysyła powiadomienie dźwiękowe/wibracje. Stan sesji jest zapisywany w `localStorage` na wypadek przypadkowego odświeżenia strony. Łate oznaczenie serii (jednym przyciskiem), w której wykonało się dokładnie tylo powtórzeń i takim cięrzarem jak zaplanowano.
 
 #### **Nazwa widoku:** Historia Treningów
+
 - **Ścieżka:** `/history`
 - **Główny cel:** Umożliwienie przeglądania historii ukończonych treningów.
 - **Kluczowe informacje:** Chronologiczna lista odbytych sesji (data, nazwa planu, nazwa dnia).
@@ -108,9 +118,9 @@ Główny przepływ dla nowego użytkownika koncentruje się na jak najszybszym s
     - Po wypełnieniu formularza preferencji i kliknięciu "Generuj", aplikacja wyświetla stan ładowania, wysyłając zapytanie do `POST /api/plans/generate`.
     - Po otrzymaniu odpowiedzi, użytkownik widzi `/generate/preview` z wygenerowanym planem.
     - Użytkownik ma trzy opcje:
-        - **"Zaakceptuj i zapisz":** Aplikacja wysyła `POST /api/plans` z danymi planu. Po sukcesie użytkownik jest przekierowywany na pulpit (`/`), gdzie widzi już swój pierwszy zaplanowany trening i kolejne.
-        - **"Edytuj":** Użytkownik jest przenoszony do `/plans/new` (lub podobnego widoku edycji) z formularzem wypełnionym danymi z AI, gdzie może je dowolnie modyfikować przed zapisaniem.
-        - **"Odrzuć":** Użytkownik wraca do pulpitu lub formularza preferencji.
+      - **"Zaakceptuj i zapisz":** Aplikacja wysyła `POST /api/plans` z danymi planu. Po sukcesie użytkownik jest przekierowywany na pulpit (`/`), gdzie widzi już swój pierwszy zaplanowany trening i kolejne.
+      - **"Edytuj":** Użytkownik jest przenoszony do `/plans/new` (lub podobnego widoku edycji) z formularzem wypełnionym danymi z AI, gdzie może je dowolnie modyfikować przed zapisaniem.
+      - **"Odrzuć":** Użytkownik wraca do pulpitu lub formularza preferencji.
 3.  **Rozpoczęcie i Realizacja Treningu:**
     - Na pulpicie użytkownik klika "Rozpocznij trening" przy najbliższym treningu.
     - Aplikacja tworzy sesję (`POST /api/sessions`) i przenosi użytkownika do `/session/active`.

@@ -1,0 +1,12 @@
+---
+import Layout from "@/layouts/Layout.astro";
+import { AiPlannerGeneratorView } from "@/components/AiPlannerGeneratorView";
+
+export const prerender = false;
+---
+
+<Layout title="Generator Planu AI - GymPlanner">
+  <main class="min-h-screen bg-background">
+    <AiPlannerGeneratorView client:load />
+  </main>
+</Layout>

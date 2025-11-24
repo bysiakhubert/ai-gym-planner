@@ -54,16 +54,9 @@ export const PlanStructureSchema = z.object({
  */
 export const CreatePlanRequestSchema = z
   .object({
-    name: z
-      .string()
-      .min(1, "Plan name is required")
-      .max(100, "Plan name must be 100 characters or less"),
-    effective_from: z
-      .string()
-      .datetime({ message: "effective_from must be a valid ISO 8601 timestamp" }),
-    effective_to: z
-      .string()
-      .datetime({ message: "effective_to must be a valid ISO 8601 timestamp" }),
+    name: z.string().min(1, "Plan name is required").max(100, "Plan name must be 100 characters or less"),
+    effective_from: z.string().datetime({ message: "effective_from must be a valid ISO 8601 timestamp" }),
+    effective_to: z.string().datetime({ message: "effective_to must be a valid ISO 8601 timestamp" }),
     source: z.enum(["ai", "manual"], {
       errorMap: () => ({ message: "Source must be 'ai' or 'manual'" }),
     }),
