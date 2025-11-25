@@ -1159,6 +1159,62 @@ Retrieve audit events for authenticated user.
 
 ---
 
+### 3.4. Dashboard Resource
+
+#### 3.4.1. Get Dashboard Summary
+
+Retrieve aggregated data for the main user dashboard to provide quick access to the next workout and motivate action.
+
+**Endpoint**: `GET /api/dashboard`
+
+**Success Response**: `200 OK`
+
+```json
+{
+  "upcoming_workouts": [
+    {
+      "plan_id": "550e8400-e29b-41d4-a716-446655440000",
+      "plan_name": "6-Week PPL Program",
+      "day_name": "Push Day",
+      "date": "2025-01-15",
+      "is_next": true
+    },
+    {
+      "plan_id": "550e8400-e29b-41d4-a716-446655440000",
+      "plan_name": "6-Week PPL Program",
+      "day_name": "Pull Day",
+      "date": "2025-01-17",
+      "is_next": false
+    }
+  ],
+  "user_state": "active"
+}
+```
+
+**Response Schema**:
+
+- `upcoming_workouts` (array): Chronological list of upcoming workouts from all active plans
+  - `plan_id` (uuid): Source plan ID
+  - `plan_name` (string): Name of the plan
+  - `day_name` (string): Name of the workout day
+  - `date` (string): ISO date (YYYY-MM-DD)
+  - `is_next` (boolean): Indicator for the immediate next workout
+- `user_state` (string): User status for UI handling
+  - "new": No active plans created yet
+  - "active": Active plans with scheduled workouts
+  - "completed": Active plans exist but cycle is finished (no future workouts)
+
+**Business Logic**:
+
+1. Retrieve all non-archived plans for the user
+2. If no plans exist, return `user_state="new"` and empty list
+3. Collect all future workouts (date >= today) from active plans
+4. Sort workouts by date ascending
+5. If plans exist but list is empty, return `user_state="completed"`
+6. Otherwise return `user_state="active"` with list
+
+---
+
 ## 4. Common Error Responses
 
 All endpoints may return the following common error responses:
@@ -1464,6 +1520,7 @@ Set up alerts for:
 - [ ] POST /api/sessions/:id/complete
 - [ ] GET /api/sessions (list)
 - [ ] GET /api/sessions/:id (details)
+- [ ] GET /api/dashboard (summary)
 
 ### Phase 2: AI Integration
 
