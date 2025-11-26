@@ -967,7 +967,8 @@ Mark a session as completed.
 4. Set ended_at to current timestamp
 5. Validate ended_at > started_at
 6. Save to database
-7. Log `session_completed` audit event
+7. Update parent plan: set `schedule[date].done = true`
+8. Log `session_completed` audit event
 
 ---
 
