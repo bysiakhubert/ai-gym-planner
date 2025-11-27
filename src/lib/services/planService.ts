@@ -1,5 +1,13 @@
 import type { SupabaseClient } from "src/db/supabase.client";
-import type { CreatePlanRequest, PlanResponse, UserPreferences, PlanStructure } from "src/types";
+import type {
+  CreatePlanRequest,
+  PlanResponse,
+  UserPreferences,
+  PlanStructure,
+  PlanSummary,
+  PaginatedPlansResponse,
+  ListPlansQueryParams,
+} from "src/types";
 import type { Json } from "src/db/database.types";
 import { auditLogService } from "./auditLogService";
 
@@ -112,6 +120,71 @@ export const planService = {
       archived: newPlan.archived,
       created_at: newPlan.created_at,
       updated_at: newPlan.updated_at,
+    };
+  },
+
+  /**
+   * Lists active (non-archived) plans for a user with pagination and sorting
+   *
+   * @param supabase - Supabase client instance
+   * @param userId - ID of the user
+   * @param params - Query parameters for pagination and sorting
+   * @returns Paginated list of plan summaries
+   * @throws {Error} If database operation fails
+   */
+  listPlans: async (
+    supabase: SupabaseClient,
+    userId: string,
+    params: ListPlansQueryParams
+  ): Promise<PaginatedPlansResponse> => {
+    const { limit = 20, offset = 0, sort = "effective_from", order = "desc" } = params;
+
+    // Step 1: Get total count of active plans for pagination
+    const { count, error: countError } = await supabase
+      .from("plans")
+      .select("*", { count: "exact", head: true })
+      .eq("user_id", userId)
+      .eq("archived", false);
+
+    if (countError) {
+      throw new Error(`Failed to count plans: ${countError.message}`);
+    }
+
+    const total = count ?? 0;
+
+    // Step 2: Fetch plans with only PlanSummary columns (excluding heavy JSONB fields)
+    const { data: plans, error: fetchError } = await supabase
+      .from("plans")
+      .select("id, name, effective_from, effective_to, source, created_at, updated_at")
+      .eq("user_id", userId)
+      .eq("archived", false)
+      .order(sort, { ascending: order === "asc" })
+      .range(offset, offset + limit - 1);
+
+    if (fetchError) {
+      throw new Error(`Failed to fetch plans: ${fetchError.message}`);
+    }
+
+    // Step 3: Transform database results to PlanSummary type
+    const planSummaries: PlanSummary[] = (plans ?? []).map((plan) => ({
+      id: plan.id,
+      name: plan.name,
+      effective_from: plan.effective_from,
+      effective_to: plan.effective_to,
+      source: plan.source,
+      created_at: plan.created_at,
+      updated_at: plan.updated_at,
+    }));
+
+    // Step 4: Return paginated response
+    return {
+      plans: planSummaries,
+      pagination: {
+        total,
+        limit,
+        offset,
+        has_more: offset + planSummaries.length < total,
+      },
     };
   },
 };

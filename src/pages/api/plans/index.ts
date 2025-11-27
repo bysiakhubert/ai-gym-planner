@@ -1,11 +1,82 @@
 import type { APIRoute } from "astro";
 import type { ApiError } from "src/types";
-import { CreatePlanRequestSchema } from "src/lib/schemas/plans";
+import { CreatePlanRequestSchema, ListPlansQueryParamsSchema } from "src/lib/schemas/plans";
 import { planService, DateOverlapError } from "src/lib/services/planService";
 import { DEFAULT_USER_ID } from "src/db/supabase.client";
 import { ZodError } from "zod";
 
 export const prerender = false;
+
+/**
+ * GET /api/plans
+ * Lists active (non-archived) training plans for the authenticated user
+ *
+ * Query Parameters:
+ * - limit: Number of results (default: 20, max: 100)
+ * - offset: Pagination offset (default: 0)
+ * - sort: Sort field ("effective_from" | "created_at" | "name", default: "effective_from")
+ * - order: Sort direction ("asc" | "desc", default: "desc")
+ *
+ * @returns 200 OK with paginated list of plan summaries
+ * @returns 400 Bad Request for invalid query parameters
+ * @returns 401 Unauthorized if user is not authenticated
+ * @returns 500 Internal Server Error for unexpected errors
+ */
+export const GET: APIRoute = async ({ request, locals }) => {
+  const { supabase } = locals;
+
+  // TODO: Replace DEFAULT_USER_ID with authenticated user from locals.user after auth implementation
+  const userId = DEFAULT_USER_ID;
+
+  // Parse query parameters from URL
+  const url = new URL(request.url);
+  const queryParams = {
+    limit: url.searchParams.get("limit") ?? undefined,
+    offset: url.searchParams.get("offset") ?? undefined,
+    sort: url.searchParams.get("sort") ?? undefined,
+    order: url.searchParams.get("order") ?? undefined,
+  };
+
+  // Validate query parameters with Zod schema
+  try {
+    const validatedParams = ListPlansQueryParamsSchema.parse(queryParams);
+
+    // Call PlanService to list plans
+    const paginatedPlans = await planService.listPlans(supabase, userId, validatedParams);
+
+    // Return 200 OK with paginated plans
+    return new Response(JSON.stringify(paginatedPlans), {
+      status: 200,
+      headers: { "Content-Type": "application/json" },
+    });
+  } catch (error) {
+    // Handle validation errors from Zod
+    if (error instanceof ZodError) {
+      const errorResponse: ApiError = {
+        error: "ValidationError",
+        message: "Invalid query parameters",
+        details: error.flatten().fieldErrors,
+      };
+      return new Response(JSON.stringify(errorResponse), {
+        status: 400,
+        headers: { "Content-Type": "application/json" },
+      });
+    }
+
+    // Handle unexpected errors
+    // eslint-disable-next-line no-console
+    console.error("Failed to list plans:", error);
+
+    const errorResponse: ApiError = {
+      error: "InternalServerError",
+      message: "An unexpected error occurred while fetching plans",
+    };
+    return new Response(JSON.stringify(errorResponse), {
+      status: 500,
+      headers: { "Content-Type": "application/json" },
+    });
+  }
+};
 
 /**
  * POST /api/plans

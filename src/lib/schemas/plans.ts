@@ -68,3 +68,19 @@ export const CreatePlanRequestSchema = z
     message: "effective_to must be after effective_from",
     path: ["effective_to"],
   });
+
+/**
+ * Zod schema for query parameters when listing plans
+ * GET /api/plans
+ */
+export const ListPlansQueryParamsSchema = z.object({
+  limit: z.coerce
+    .number()
+    .int("Limit must be an integer")
+    .min(1, "Limit must be at least 1")
+    .max(100, "Limit cannot exceed 100")
+    .default(20),
+  offset: z.coerce.number().int("Offset must be an integer").min(0, "Offset must be non-negative").default(0),
+  sort: z.enum(["effective_from", "created_at", "name"]).default("effective_from"),
+  order: z.enum(["asc", "desc"]).default("desc"),
+});
