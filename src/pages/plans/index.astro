@@ -1,0 +1,11 @@
+---
+import Layout from "@/layouts/Layout.astro";
+import { PlansListContainer } from "@/components/plans/list/PlansListContainer";
+
+export const prerender = false;
+---
+
+<Layout title="GymPlanner - Moje plany">
+  <PlansListContainer client:load />
+</Layout>
+

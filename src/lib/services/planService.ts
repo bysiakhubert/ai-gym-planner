@@ -7,6 +7,7 @@ import type {
   PlanSummary,
   PaginatedPlansResponse,
   ListPlansQueryParams,
+  ArchivePlanResponse,
 } from "src/types";
 import type { Json } from "src/db/database.types";
 import { auditLogService } from "./auditLogService";
@@ -18,6 +19,16 @@ export class DateOverlapError extends Error {
   constructor(message: string) {
     super(message);
     this.name = "DateOverlapError";
+  }
+}
+
+/**
+ * Custom error class for plan not found
+ */
+export class PlanNotFoundError extends Error {
+  constructor(planId: string) {
+    super(`Plan with id "${planId}" not found`);
+    this.name = "PlanNotFoundError";
   }
 }
 
@@ -185,6 +196,70 @@ export const planService = {
         offset,
         has_more: offset + planSummaries.length < total,
       },
+    };
+  },
+
+  /**
+   * Archives a training plan (soft delete)
+   *
+   * Sets the archived flag to true instead of deleting the plan.
+   *
+   * @param supabase - Supabase client instance
+   * @param userId - ID of the user
+   * @param planId - ID of the plan to archive
+   * @returns Archive confirmation response
+   * @throws {PlanNotFoundError} If the plan doesn't exist or doesn't belong to the user
+   * @throws {Error} If database operation fails
+   */
+  archivePlan: async (
+    supabase: SupabaseClient,
+    userId: string,
+    planId: string
+  ): Promise<ArchivePlanResponse> => {
+    // Step 1: Check if plan exists and belongs to user
+    const { data: existingPlan, error: checkError } = await supabase
+      .from("plans")
+      .select("id, name, archived")
+      .eq("id", planId)
+      .eq("user_id", userId)
+      .single();
+
+    if (checkError || !existingPlan) {
+      throw new PlanNotFoundError(planId);
+    }
+
+    // Step 2: If already archived, return success
+    if (existingPlan.archived) {
+      return {
+        message: "Plan already archived",
+        id: planId,
+      };
+    }
+
+    // Step 3: Update the plan to archived
+    const { error: updateError } = await supabase
+      .from("plans")
+      .update({ archived: true })
+      .eq("id", planId)
+      .eq("user_id", userId);
+
+    if (updateError) {
+      throw new Error(`Failed to archive plan: ${updateError.message}`);
+    }
+
+    // Step 4: Log audit event
+    await auditLogService.logEvent(supabase, userId, "plan_deleted", {
+      entityType: "plan",
+      entityId: planId,
+      payload: {
+        plan_name: existingPlan.name,
+      },
+    });
+
+    // Step 5: Return success response
+    return {
+      message: "Plan archived successfully",
+      id: planId,
     };
   },
 };

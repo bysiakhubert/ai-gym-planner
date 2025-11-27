@@ -1,16 +1,18 @@
 ---
 import "../styles/global.css";
 import { Toaster } from "@/components/ui/sonner";
+import Navigation from "@/components/Navigation.astro";
 
 interface Props {
   title?: string;
+  hideNavigation?: boolean;
 }
 
-const { title = "10x Astro Starter" } = Astro.props;
+const { title = "GymPlanner", hideNavigation = false } = Astro.props;
 ---
 
 <!doctype html>
-<html lang="en">
+<html lang="pl">
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width" />
@@ -18,8 +20,11 @@ const { title = "10x Astro Starter" } = Astro.props;
     <meta name="generator" content={Astro.generator} />
     <title>{title}</title>
   </head>
-  <body>
-    <slot />
+  <body class="min-h-screen bg-background text-foreground antialiased">
+    {!hideNavigation && <Navigation />}
+    <main>
+      <slot />
+    </main>
     <Toaster client:load />
   </body>
 </html>

@@ -1,0 +1,103 @@
+---
+/**
+ * Navigation - Global navigation component
+ *
+ * Displays app logo and main navigation links.
+ * Highlights the current page.
+ */
+
+interface Props {
+  currentPath?: string;
+}
+
+const { currentPath = Astro.url.pathname } = Astro.props;
+
+interface NavLink {
+  href: string;
+  label: string;
+  icon: string;
+}
+
+const navLinks: NavLink[] = [
+  { href: "/", label: "Pulpit", icon: "home" },
+  { href: "/plans", label: "Moje plany", icon: "list" },
+  { href: "/generate", label: "Nowy plan", icon: "sparkles" },
+];
+
+function isActive(href: string, current: string): boolean {
+  if (href === "/") {
+    return current === "/";
+  }
+  return current.startsWith(href);
+}
+---
+
+<header class="sticky top-0 z-50 w-full border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
+  <div class="container mx-auto flex h-14 items-center px-4">
+    <!-- Logo -->
+    <a href="/" class="flex items-center gap-2 mr-8 font-semibold text-lg">
+      <svg
+        xmlns="http://www.w3.org/2000/svg"
+        viewBox="0 0 24 24"
+        fill="none"
+        stroke="currentColor"
+        stroke-width="2"
+        stroke-linecap="round"
+        stroke-linejoin="round"
+        class="size-6 text-primary"
+      >
+        <path d="M6.5 6.5a3.5 3.5 0 1 0 0 7" />
+        <path d="M17.5 6.5a3.5 3.5 0 1 1 0 7" />
+        <path d="M6.5 17.5a3.5 3.5 0 1 0 0-7" />
+        <path d="M17.5 17.5a3.5 3.5 0 1 1 0-7" />
+        <path d="M6.5 10h11" />
+        <path d="M6.5 14h11" />
+      </svg>
+      <span class="hidden sm:inline">GymPlanner</span>
+    </a>
+
+    <!-- Navigation Links -->
+    <nav class="flex items-center gap-1" aria-label="Główna nawigacja">
+      {navLinks.map((link) => (
+        <a
+          href={link.href}
+          class:list={[
+            "inline-flex items-center gap-2 rounded-md px-3 py-2 text-sm font-medium transition-colors",
+            "hover:bg-accent hover:text-accent-foreground",
+            "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring",
+            isActive(link.href, currentPath)
+              ? "bg-accent text-accent-foreground"
+              : "text-muted-foreground"
+          ]}
+          aria-current={isActive(link.href, currentPath) ? "page" : undefined}
+        >
+          {link.icon === "home" && (
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="size-4">
+              <path d="M15 21v-8a1 1 0 0 0-1-1h-4a1 1 0 0 0-1 1v8" />
+              <path d="M3 10a2 2 0 0 1 .709-1.528l7-5.999a2 2 0 0 1 2.582 0l7 5.999A2 2 0 0 1 21 10v9a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z" />
+            </svg>
+          )}
+          {link.icon === "list" && (
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="size-4">
+              <rect width="7" height="7" x="3" y="3" rx="1" />
+              <rect width="7" height="7" x="14" y="3" rx="1" />
+              <rect width="7" height="7" x="14" y="14" rx="1" />
+              <rect width="7" height="7" x="3" y="14" rx="1" />
+            </svg>
+          )}
+          {link.icon === "sparkles" && (
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="size-4">
+              <path d="M9.937 15.5A2 2 0 0 0 8.5 14.063l-6.135-1.582a.5.5 0 0 1 0-.962L8.5 9.936A2 2 0 0 0 9.937 8.5l1.582-6.135a.5.5 0 0 1 .963 0L14.063 8.5A2 2 0 0 0 15.5 9.937l6.135 1.581a.5.5 0 0 1 0 .964L15.5 14.063a2 2 0 0 0-1.437 1.437l-1.582 6.135a.5.5 0 0 1-.963 0z" />
+              <path d="M20 3v4" />
+              <path d="M22 5h-4" />
+              <path d="M4 17v2" />
+              <path d="M5 18H3" />
+            </svg>
+          )}
+          <span class="hidden sm:inline">{link.label}</span>
+        </a>
+      ))}
+    </nav>
+  </div>
+</header>
+
