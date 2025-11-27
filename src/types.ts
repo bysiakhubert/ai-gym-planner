@@ -499,3 +499,36 @@ export interface AIGenerationMetadata {
   completion_tokens?: number;
   generation_time_ms: number;
 }
+
+// ============================================================================
+// Dashboard API Types
+// ============================================================================
+
+/**
+ * Single upcoming workout item for dashboard
+ * Represents a scheduled workout from an active plan
+ */
+export interface UpcomingWorkout {
+  plan_id: string;
+  plan_name: string;
+  day_name: string;
+  date: string; // ISO date string (YYYY-MM-DD)
+  is_next: boolean;
+}
+
+/**
+ * User state for dashboard UI handling
+ * - "new": User has no plans created
+ * - "active": User has active plans with upcoming workouts
+ * - "completed": User has plans but all workouts are completed
+ */
+export type DashboardUserState = "new" | "active" | "completed";
+
+/**
+ * Response for dashboard summary
+ * GET /api/dashboard
+ */
+export interface DashboardResponse {
+  upcoming_workouts: UpcomingWorkout[];
+  user_state: DashboardUserState;
+}
