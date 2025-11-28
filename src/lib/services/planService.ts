@@ -1,6 +1,7 @@
 import type { SupabaseClient } from "src/db/supabase.client";
 import type {
   CreatePlanRequest,
+  UpdatePlanRequest,
   PlanResponse,
   UserPreferences,
   PlanStructure,
@@ -303,6 +304,112 @@ export const planService = {
     return {
       message: "Plan archived successfully",
       id: planId,
+    };
+  },
+
+  /**
+   * Updates an existing training plan
+   *
+   * @param supabase - Supabase client instance
+   * @param userId - ID of the user
+   * @param planId - ID of the plan to update
+   * @param data - Plan update data
+   * @returns The updated plan
+   * @throws {PlanNotFoundError} If the plan doesn't exist or doesn't belong to the user
+   * @throws {DateOverlapError} If the new plan dates overlap with other existing plans
+   * @throws {Error} If database operation fails
+   */
+  updatePlan: async (
+    supabase: SupabaseClient,
+    userId: string,
+    planId: string,
+    data: UpdatePlanRequest
+  ): Promise<PlanResponse> => {
+    // Step 1: Check if plan exists and belongs to user
+    const { data: existingPlan, error: checkError } = await supabase
+      .from("plans")
+      .select("id, name")
+      .eq("id", planId)
+      .eq("user_id", userId)
+      .single();
+
+    if (checkError || !existingPlan) {
+      throw new PlanNotFoundError(planId);
+    }
+
+    // Step 2: Check for date overlaps with other non-archived plans (excluding current plan)
+    const { data: overlappingPlans, error: overlapError } = await supabase
+      .from("plans")
+      .select("id, name, effective_from, effective_to")
+      .eq("user_id", userId)
+      .eq("archived", false)
+      .neq("id", planId)
+      .or(`and(effective_from.lte.${data.effective_to},effective_to.gte.${data.effective_from})`);
+
+    if (overlapError) {
+      throw new Error(`Failed to check for overlapping plans: ${overlapError.message}`);
+    }
+
+    if (overlappingPlans && overlappingPlans.length > 0) {
+      const overlappingPlan = overlappingPlans[0];
+      throw new DateOverlapError(
+        `Plan dates overlap with existing plan "${overlappingPlan.name}" (${overlappingPlan.effective_from} to ${overlappingPlan.effective_to})`
+      );
+    }
+
+    // Step 3: Create the plan update object
+    const planUpdate = {
+      name: data.name,
+      effective_from: data.effective_from,
+      effective_to: data.effective_to,
+      source: data.source,
+      prompt: data.prompt ?? null,
+      preferences: data.preferences as unknown as Json,
+      plan: data.plan as unknown as Json,
+    };
+
+    // Step 4: Update the plan in the database
+    const { data: updatedPlan, error: updateError } = await supabase
+      .from("plans")
+      .update(planUpdate)
+      .eq("id", planId)
+      .eq("user_id", userId)
+      .select()
+      .single();
+
+    if (updateError) {
+      throw new Error(`Failed to update plan: ${updateError.message}`);
+    }
+
+    if (!updatedPlan) {
+      throw new Error("Plan was not returned after update");
+    }
+
+    // Step 5: Log audit event
+    await auditLogService.logEvent(supabase, userId, "plan_updated", {
+      entityType: "plan",
+      entityId: updatedPlan.id,
+      payload: {
+        plan_name: updatedPlan.name,
+        effective_from: updatedPlan.effective_from,
+        effective_to: updatedPlan.effective_to,
+      },
+    });
+
+    // Step 6: Return the updated plan as PlanResponse
+    return {
+      id: updatedPlan.id,
+      user_id: updatedPlan.user_id,
+      name: updatedPlan.name,
+      effective_from: updatedPlan.effective_from,
+      effective_to: updatedPlan.effective_to,
+      source: updatedPlan.source,
+      prompt: updatedPlan.prompt,
+      preferences: updatedPlan.preferences as UserPreferences | Record<string, never>,
+      plan: updatedPlan.plan as unknown as PlanStructure,
+      archived: updatedPlan.archived,
+      created_at: updatedPlan.created_at,
+      updated_at: updatedPlan.updated_at,
     };
   },
 };

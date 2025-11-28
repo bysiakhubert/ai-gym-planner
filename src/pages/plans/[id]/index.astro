@@ -1,0 +1,19 @@
+---
+import Layout from "@/layouts/Layout.astro";
+import { PlanDetailsView } from "@/components/plans/details";
+
+export const prerender = false;
+
+const { id } = Astro.params;
+
+// Validate plan ID format (UUID)
+const uuidRegex = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+if (!id || !uuidRegex.test(id)) {
+  return Astro.redirect("/plans");
+}
+---
+
+<Layout title="GymPlanner - Szczegóły planu">
+  <PlanDetailsView planId={id} client:load />
+</Layout>
+

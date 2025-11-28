@@ -7,9 +7,11 @@
 
 import type {
   PaginatedPlansResponse,
+  PlanResponse,
   ArchivePlanResponse,
   ApiError,
   ListPlansQueryParams,
+  UpdatePlanRequest,
 } from "@/types";
 
 /**
@@ -61,6 +63,49 @@ export async function fetchPlans(
 export async function archivePlan(planId: string): Promise<ArchivePlanResponse> {
   const response = await fetch(`/api/plans/${planId}`, {
     method: "DELETE",
+  });
+
+  if (!response.ok) {
+    const errorData: ApiError = await response.json();
+    throw errorData;
+  }
+
+  return response.json();
+}
+
+/**
+ * Fetches a single training plan by ID
+ *
+ * @param planId - ID of the plan to fetch
+ * @returns Promise resolving to full plan details
+ * @throws ApiError when the request fails
+ */
+export async function fetchPlan(planId: string): Promise<PlanResponse> {
+  const response = await fetch(`/api/plans/${planId}`);
+
+  if (!response.ok) {
+    const errorData: ApiError = await response.json();
+    throw errorData;
+  }
+
+  return response.json();
+}
+
+/**
+ * Updates an existing training plan
+ *
+ * @param planId - ID of the plan to update
+ * @param data - Updated plan data
+ * @returns Promise resolving to updated plan details
+ * @throws ApiError when the request fails
+ */
+export async function updatePlan(planId: string, data: UpdatePlanRequest): Promise<PlanResponse> {
+  const response = await fetch(`/api/plans/${planId}`, {
+    method: "PUT",
+    headers: {
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify(data),
   });
 
   if (!response.ok) {
