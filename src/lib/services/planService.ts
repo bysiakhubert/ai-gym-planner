@@ -200,6 +200,53 @@ export const planService = {
   },
 
   /**
+   * Gets a single plan by ID
+   *
+   * @param supabase - Supabase client instance
+   * @param userId - ID of the user
+   * @param planId - ID of the plan to retrieve
+   * @returns The plan if found, null otherwise
+   * @throws {PlanNotFoundError} If the plan doesn't exist or doesn't belong to the user
+   * @throws {Error} If database operation fails
+   */
+  getPlanById: async (supabase: SupabaseClient, userId: string, planId: string): Promise<PlanResponse> => {
+    const { data: plan, error } = await supabase
+      .from("plans")
+      .select("*")
+      .eq("id", planId)
+      .eq("user_id", userId)
+      .single();
+
+    // Handle Supabase single() error for no rows found (PGRST116)
+    if (error) {
+      if (error.code === "PGRST116") {
+        throw new PlanNotFoundError(planId);
+      }
+      throw new Error(`Failed to fetch plan: ${error.message}`);
+    }
+
+    if (!plan) {
+      throw new PlanNotFoundError(planId);
+    }
+
+    // Transform database result to PlanResponse type
+    return {
+      id: plan.id,
+      user_id: plan.user_id,
+      name: plan.name,
+      effective_from: plan.effective_from,
+      effective_to: plan.effective_to,
+      source: plan.source,
+      prompt: plan.prompt,
+      preferences: plan.preferences as UserPreferences | Record<string, never>,
+      plan: plan.plan as unknown as PlanStructure,
+      archived: plan.archived,
+      created_at: plan.created_at,
+      updated_at: plan.updated_at,
+    };
+  },
+
+  /**
    * Archives a training plan (soft delete)
    *
    * Sets the archived flag to true instead of deleting the plan.
@@ -211,11 +258,7 @@ export const planService = {
    * @throws {PlanNotFoundError} If the plan doesn't exist or doesn't belong to the user
    * @throws {Error} If database operation fails
    */
-  archivePlan: async (
-    supabase: SupabaseClient,
-    userId: string,
-    planId: string
-  ): Promise<ArchivePlanResponse> => {
+  archivePlan: async (supabase: SupabaseClient, userId: string, planId: string): Promise<ArchivePlanResponse> => {
     // Step 1: Check if plan exists and belongs to user
     const { data: existingPlan, error: checkError } = await supabase
       .from("plans")
