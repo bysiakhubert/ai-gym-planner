@@ -44,15 +44,10 @@ interface LoadingStateProps {
 
 export function LoadingState({ count = 6 }: LoadingStateProps) {
   return (
-    <div
-      className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3"
-      aria-label="Ładowanie planów..."
-      aria-busy="true"
-    >
+    <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3" aria-label="Ładowanie planów..." aria-busy="true">
       {Array.from({ length: count }).map((_, index) => (
         <PlanCardSkeleton key={index} />
       ))}
     </div>
   );
 }
-

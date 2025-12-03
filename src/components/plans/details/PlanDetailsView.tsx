@@ -8,6 +8,7 @@
 import { useEffect, useState, useCallback } from "react";
 import { format } from "date-fns";
 import { pl } from "date-fns/locale";
+import { toast } from "sonner";
 import {
   ArrowLeft,
   Pencil,
@@ -17,16 +18,18 @@ import {
   Dumbbell,
   Clock,
   Weight,
-  Loader2,
   AlertCircle,
   RefreshCw,
   CheckCircle2,
+  RotateCcw,
 } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Alert, AlertTitle, AlertDescription } from "@/components/ui/alert";
+import { SafetyDisclaimer } from "@/components/SafetyDisclaimer";
+import { GenerateNextCycleDialog } from "./GenerateNextCycleDialog";
 
 import { fetchPlan } from "@/lib/api/plans";
 import type { PlanResponse, ApiError, WorkoutDay } from "@/types";
@@ -193,6 +196,7 @@ export function PlanDetailsView({ planId }: PlanDetailsViewProps) {
   const [plan, setPlan] = useState<PlanResponse | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<ApiError | null>(null);
+  const [isGenerateModalOpen, setIsGenerateModalOpen] = useState(false);
 
   const loadPlan = useCallback(async () => {
     setIsLoading(true);
@@ -218,6 +222,15 @@ export function PlanDetailsView({ planId }: PlanDetailsViewProps) {
 
   const handleEdit = () => {
     window.location.href = `/plans/${planId}/edit`;
+  };
+
+  const handleGenerateNextCycle = () => {
+    setIsGenerateModalOpen(true);
+  };
+
+  const handlePlanCreated = (newPlanId: string) => {
+    toast.success("Nowy plan został utworzony!");
+    window.location.href = `/plans/${newPlanId}`;
   };
 
   // Loading state
@@ -256,6 +269,9 @@ export function PlanDetailsView({ planId }: PlanDetailsViewProps) {
   const completedDays = sortedDays.filter(([, day]) => day.done).length;
   const totalDays = sortedDays.length;
 
+  // Check if "Generate next cycle" button should be visible (only for completed plans)
+  const canGenerateNextCycle = status === "completed";
+
   return (
     <div className="container mx-auto max-w-4xl px-4 py-8">
       {/* Header */}
@@ -272,6 +288,7 @@ export function PlanDetailsView({ planId }: PlanDetailsViewProps) {
                 <User className="size-5 text-muted-foreground" />
               )}
               <h1 className="text-2xl font-bold">{plan.name}</h1>
+              <Badge className={statusClassName}>{statusLabel}</Badge>
             </div>
             <p className="text-sm text-muted-foreground mt-1">
               {formatDate(plan.effective_from)} – {formatDate(plan.effective_to)}
@@ -279,11 +296,26 @@ export function PlanDetailsView({ planId }: PlanDetailsViewProps) {
           </div>
         </div>
 
-        <Button onClick={handleEdit} className="gap-2">
-          <Pencil className="size-4" />
-          Edytuj plan
-        </Button>
+        <div className="flex flex-wrap gap-2">
+          {canGenerateNextCycle && (
+            <Button onClick={handleGenerateNextCycle} variant="outline" className="gap-2">
+              <RotateCcw className="size-4" />
+              Generuj kolejny cykl
+            </Button>
+          )}
+          <Button onClick={handleEdit} className="gap-2">
+            <Pencil className="size-4" />
+            Edytuj plan
+          </Button>
+        </div>
       </div>
+
+      {/* Safety Disclaimer for AI-generated plans */}
+      {plan.source === "ai" && (
+        <div className="mb-6">
+          <SafetyDisclaimer />
+        </div>
+      )}
 
       {/* Info cards */}
       <div className="mb-6 grid gap-4 sm:grid-cols-3">
@@ -344,7 +376,14 @@ export function PlanDetailsView({ planId }: PlanDetailsViewProps) {
           </Card>
         )}
       </div>
+
+      {/* Generate Next Cycle Dialog */}
+      <GenerateNextCycleDialog
+        plan={plan}
+        isOpen={isGenerateModalOpen}
+        onOpenChange={setIsGenerateModalOpen}
+        onPlanCreated={handlePlanCreated}
+      />
     </div>
   );
 }
-

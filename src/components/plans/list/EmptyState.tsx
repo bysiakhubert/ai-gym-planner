@@ -19,8 +19,7 @@ export function EmptyState() {
         <h2 className="text-xl font-semibold mb-2">Brak planów treningowych</h2>
 
         <p className="text-muted-foreground mb-6">
-          Nie masz jeszcze żadnych planów treningowych. Stwórz swój pierwszy plan, aby
-          rozpocząć treningi!
+          Nie masz jeszcze żadnych planów treningowych. Stwórz swój pierwszy plan, aby rozpocząć treningi!
         </p>
 
         <Button asChild size="lg">
@@ -33,4 +32,3 @@ export function EmptyState() {
     </Card>
   );
 }
-

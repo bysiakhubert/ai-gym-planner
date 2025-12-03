@@ -149,4 +149,3 @@ export function DayCard({ index, onRemove, canRemove }: DayCardProps) {
     </Card>
   );
 }
-

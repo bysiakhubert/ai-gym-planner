@@ -5,4 +5,3 @@ export { WorkoutCard } from "./WorkoutCard";
 export type { DashboardViewProps } from "./DashboardView";
 export type { EmptyDashboardProps } from "./EmptyDashboard";
 export type { WorkoutCardProps } from "./WorkoutCard";
-

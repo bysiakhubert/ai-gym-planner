@@ -112,4 +112,3 @@ export function ExerciseCard({ dayIndex, exerciseIndex, onRemove, canRemove }: E
     </div>
   );
 }
-

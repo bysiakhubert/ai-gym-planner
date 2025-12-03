@@ -79,4 +79,3 @@ export function WorkoutCard({ workout }: WorkoutCardProps) {
     </Card>
   );
 }
-

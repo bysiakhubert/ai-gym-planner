@@ -44,4 +44,3 @@ export function EmptyDashboard({ state }: EmptyDashboardProps) {
     </div>
   );
 }
-

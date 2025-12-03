@@ -119,4 +119,3 @@ export function DashboardView({ initialData, error }: DashboardViewProps) {
     </div>
   );
 }
-

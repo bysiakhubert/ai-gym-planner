@@ -38,9 +38,7 @@ export class DashboardService {
     }
 
     // Extract upcoming workouts from all plans
-    const upcomingWorkouts = this.extractUpcomingWorkouts(
-      plans as Array<{ id: string; name: string; plan: PlanStructure }>
-    );
+    const upcomingWorkouts = this.extractUpcomingWorkouts(plans as { id: string; name: string; plan: PlanStructure }[]);
 
     // Plans exist but no future workouts - completed state
     if (upcomingWorkouts.length === 0) {
@@ -63,9 +61,7 @@ export class DashboardService {
    * @param plans - Array of plans with their structures
    * @returns Sorted array of upcoming workouts (max 10)
    */
-  private extractUpcomingWorkouts(
-    plans: Array<{ id: string; name: string; plan: PlanStructure }>
-  ): UpcomingWorkout[] {
+  private extractUpcomingWorkouts(plans: { id: string; name: string; plan: PlanStructure }[]): UpcomingWorkout[] {
     const today = this.getTodayDateString();
     const workouts: UpcomingWorkout[] = [];
 
@@ -111,4 +107,3 @@ export class DashboardService {
     return new Date().toISOString().split("T")[0];
   }
 }
-

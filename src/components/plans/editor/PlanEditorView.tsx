@@ -195,7 +195,13 @@ export function PlanEditorView({ planId }: PlanEditorViewProps) {
           {/* Page Header */}
           <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
             <div className="flex items-center gap-4">
-              <Button type="button" variant="ghost" size="icon" onClick={handleCancel} aria-label="Wróć do listy planów">
+              <Button
+                type="button"
+                variant="ghost"
+                size="icon"
+                onClick={handleCancel}
+                aria-label="Wróć do listy planów"
+              >
                 <ArrowLeft className="size-5" />
               </Button>
               <div>
@@ -366,4 +372,3 @@ export function PlanEditorView({ planId }: PlanEditorViewProps) {
     </div>
   );
 }
-

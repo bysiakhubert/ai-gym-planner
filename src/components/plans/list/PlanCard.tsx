@@ -71,11 +71,7 @@ function SourceIcon({ source }: { source: string }) {
   }
 
   return (
-    <span
-      className="text-muted-foreground"
-      title="Stworzony ręcznie"
-      aria-label="Plan stworzony ręcznie"
-    >
+    <span className="text-muted-foreground" title="Stworzony ręcznie" aria-label="Plan stworzony ręcznie">
       <User className="size-4" />
     </span>
   );
@@ -112,9 +108,7 @@ export function PlanCard({ plan, onArchive }: PlanCardProps) {
       <CardHeader>
         <div className="flex items-start gap-2">
           <SourceIcon source={plan.source} />
-          <CardTitle className="text-base leading-tight line-clamp-2 flex-1">
-            {plan.name}
-          </CardTitle>
+          <CardTitle className="text-base leading-tight line-clamp-2 flex-1">{plan.name}</CardTitle>
         </div>
 
         <CardAction>
@@ -166,4 +160,3 @@ export function PlanCard({ plan, onArchive }: PlanCardProps) {
     </Card>
   );
 }
-

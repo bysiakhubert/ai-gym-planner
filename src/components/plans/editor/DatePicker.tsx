@@ -52,4 +52,3 @@ export function DatePicker({ value, onChange, placeholder = "Wybierz datę", dis
     </Popover>
   );
 }
-

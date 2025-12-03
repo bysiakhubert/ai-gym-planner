@@ -105,7 +105,7 @@ export function usePlansList(): UsePlansListReturn {
   /**
    * Fetches plans from the API with given offset
    */
-  const fetchPlansData = useCallback(async (offset: number, append: boolean = false) => {
+  const fetchPlansData = useCallback(async (offset: number, append = false) => {
     try {
       const response = await fetchPlans({
         limit: DEFAULT_LIMIT,
@@ -233,4 +233,3 @@ export function usePlansList(): UsePlansListReturn {
     retry,
   };
 }
-

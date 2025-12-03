@@ -12,6 +12,9 @@ import type {
   ApiError,
   ListPlansQueryParams,
   UpdatePlanRequest,
+  GenerateNextCycleRequest,
+  GenerateNextCycleResponse,
+  CreatePlanRequest,
 } from "@/types";
 
 /**
@@ -26,15 +29,8 @@ const DEFAULT_LIMIT = 20;
  * @returns Promise resolving to paginated plans response
  * @throws ApiError when the request fails
  */
-export async function fetchPlans(
-  params: ListPlansQueryParams = {}
-): Promise<PaginatedPlansResponse> {
-  const {
-    limit = DEFAULT_LIMIT,
-    offset = 0,
-    sort = "effective_from",
-    order = "desc",
-  } = params;
+export async function fetchPlans(params: ListPlansQueryParams = {}): Promise<PaginatedPlansResponse> {
+  const { limit = DEFAULT_LIMIT, offset = 0, sort = "effective_from", order = "desc" } = params;
 
   const searchParams = new URLSearchParams({
     limit: String(limit),
@@ -116,3 +112,54 @@ export async function updatePlan(planId: string, data: UpdatePlanRequest): Promi
   return response.json();
 }
 
+/**
+ * Generates a preview for the next training cycle based on performance history
+ *
+ * @param planId - ID of the source plan
+ * @param data - Cycle generation parameters (duration, notes)
+ * @returns Promise resolving to generated cycle preview with progression summary
+ * @throws ApiError when the request fails (e.g., no sessions found)
+ */
+export async function generateNextCycle(
+  planId: string,
+  data: GenerateNextCycleRequest
+): Promise<GenerateNextCycleResponse> {
+  const response = await fetch(`/api/plans/${planId}/generate-next`, {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify(data),
+  });
+
+  if (!response.ok) {
+    const errorData: ApiError = await response.json();
+    throw errorData;
+  }
+
+  return response.json();
+}
+
+/**
+ * Creates a new training plan
+ *
+ * @param data - Plan creation data
+ * @returns Promise resolving to created plan details
+ * @throws ApiError when the request fails
+ */
+export async function createPlan(data: CreatePlanRequest): Promise<PlanResponse> {
+  const response = await fetch("/api/plans", {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify(data),
+  });
+
+  if (!response.ok) {
+    const errorData: ApiError = await response.json();
+    throw errorData;
+  }
+
+  return response.json();
+}

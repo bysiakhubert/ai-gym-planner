@@ -1,0 +1,54 @@
+meta {
+  name: Generate next cycle
+  type: http
+  seq: 4
+}
+
+post {
+  url: http://localhost:3000/api/plans/{{plan_id}}/generate-next
+  body: json
+  auth: inherit
+}
+
+headers {
+  Content-Type: application/json
+}
+
+body:json {
+  {
+    "cycle_duration_weeks": 6,
+    "notes": "Focus more on strength this cycle"
+  }
+}
+
+vars:pre-request {
+  plan_id: 00000000-0000-0000-0000-000000000001
+}
+
+settings {
+  encodeUrl: true
+  timeout: 60000
+}
+
+docs {
+  # Generate Next Cycle
+  
+  Generates a preview of the next training cycle based on performance history.
+  
+  ## Request Body
+  - `cycle_duration_weeks` (required): Duration of the new cycle (1-12 weeks)
+  - `notes` (optional): Specific focus areas or instructions for the AI
+  
+  ## Responses
+  - 200 OK: Returns GenerateNextCycleResponse with plan preview and progression summary
+  - 400 Bad Request: Invalid plan ID, validation error, or no completed sessions
+  - 404 Not Found: Plan doesn't exist or doesn't belong to user
+  - 500 Internal Server Error: AI generation failure
+  
+  ## Test Scenarios
+  1. Use a valid plan_id with completed sessions for 200 response
+  2. Use a non-existent UUID for 404 response
+  3. Use a plan without sessions for 400 response
+  4. Use cycle_duration_weeks > 12 for validation error
+}
+

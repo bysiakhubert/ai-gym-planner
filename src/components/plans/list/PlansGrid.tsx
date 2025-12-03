@@ -15,11 +15,7 @@ interface PlansGridProps {
 
 export function PlansGrid({ plans, onArchive }: PlansGridProps) {
   return (
-    <div
-      className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3"
-      role="list"
-      aria-label="Lista planów treningowych"
-    >
+    <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3" role="list" aria-label="Lista planów treningowych">
       {plans.map((plan) => (
         <div key={plan.id} role="listitem">
           <PlanCard plan={plan} onArchive={onArchive} />
@@ -28,4 +24,3 @@ export function PlansGrid({ plans, onArchive }: PlansGridProps) {
     </div>
   );
 }
-

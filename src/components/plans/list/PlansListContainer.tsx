@@ -70,12 +70,7 @@ export function PlansListContainer() {
       {/* Load more button */}
       {pagination?.has_more && (
         <div className="mt-8 flex justify-center">
-          <Button
-            variant="outline"
-            size="lg"
-            onClick={loadMore}
-            disabled={isLoadingMore}
-          >
+          <Button variant="outline" size="lg" onClick={loadMore} disabled={isLoadingMore}>
             {isLoadingMore ? "Ładowanie..." : "Załaduj więcej"}
           </Button>
         </div>
@@ -92,4 +87,3 @@ export function PlansListContainer() {
     </div>
   );
 }
-

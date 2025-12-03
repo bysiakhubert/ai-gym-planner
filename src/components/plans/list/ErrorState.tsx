@@ -28,4 +28,3 @@ export function ErrorState({ message, onRetry }: ErrorStateProps) {
     </Alert>
   );
 }
-

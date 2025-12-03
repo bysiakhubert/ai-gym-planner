@@ -112,4 +112,3 @@ export function SetRow({ dayIndex, exerciseIndex, setIndex, onRemove, canRemove 
     </div>
   );
 }
-

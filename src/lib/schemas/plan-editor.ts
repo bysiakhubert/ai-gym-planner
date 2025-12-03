@@ -23,10 +23,7 @@ export const SetFormSchema = z.object({
  * Zod schema for an exercise in the plan editor form
  */
 export const ExerciseFormSchema = z.object({
-  name: z
-    .string()
-    .min(1, "Nazwa ćwiczenia jest wymagana")
-    .max(100, "Nazwa ćwiczenia może mieć maksymalnie 100 znaków"),
+  name: z.string().min(1, "Nazwa ćwiczenia jest wymagana").max(100, "Nazwa ćwiczenia może mieć maksymalnie 100 znaków"),
   sets: z.array(SetFormSchema).min(1, "Ćwiczenie musi mieć co najmniej jedną serię"),
 });
 
@@ -35,10 +32,7 @@ export const ExerciseFormSchema = z.object({
  */
 export const DayFormSchema = z.object({
   date: z.string().regex(/^\d{4}-\d{2}-\d{2}$/, "Data musi być w formacie YYYY-MM-DD"),
-  name: z
-    .string()
-    .min(1, "Nazwa dnia jest wymagana")
-    .max(100, "Nazwa dnia może mieć maksymalnie 100 znaków"),
+  name: z.string().min(1, "Nazwa dnia jest wymagana").max(100, "Nazwa dnia może mieć maksymalnie 100 znaków"),
   exercises: z.array(ExerciseFormSchema).min(1, "Dzień treningowy musi mieć co najmniej jedno ćwiczenie"),
 });
 
@@ -48,10 +42,7 @@ export const DayFormSchema = z.object({
  */
 export const PlanEditorFormSchema = z
   .object({
-    name: z
-      .string()
-      .min(1, "Nazwa planu jest wymagana")
-      .max(100, "Nazwa planu może mieć maksymalnie 100 znaków"),
+    name: z.string().min(1, "Nazwa planu jest wymagana").max(100, "Nazwa planu może mieć maksymalnie 100 znaków"),
     effective_from: z.string().min(1, "Data rozpoczęcia jest wymagana"),
     effective_to: z.string().min(1, "Data zakończenia jest wymagana"),
     days: z.array(DayFormSchema).min(1, "Plan musi zawierać co najmniej jeden dzień treningowy"),
@@ -145,4 +136,3 @@ export function getNextDayDate(days: DayFormValues[]): string {
   nextDate.setDate(nextDate.getDate() + 1);
   return nextDate.toISOString().split("T")[0];
 }
-
