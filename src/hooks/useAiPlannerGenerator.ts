@@ -153,8 +153,8 @@ export function useAiPlannerGenerator() {
     // Store preview data for edit view
     localStorage.setItem("plan_to_edit", JSON.stringify(previewData));
 
-    // Redirect to edit view (to be implemented)
-    window.location.href = "/plans/edit";
+    // Redirect to new plan edit view
+    window.location.href = "/plans/new/edit";
   };
 
   return {

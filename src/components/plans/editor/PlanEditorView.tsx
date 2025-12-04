@@ -29,7 +29,8 @@ import {
 } from "@/lib/schemas/plan-editor";
 
 interface PlanEditorViewProps {
-  planId: string;
+  /** Plan ID for editing existing plan. If not provided, creates new plan from localStorage */
+  planId?: string;
 }
 
 /**
@@ -94,7 +95,19 @@ function EditorErrorState({ message, onRetry }: { message: string; onRetry: () =
 }
 
 export function PlanEditorView({ planId }: PlanEditorViewProps) {
-  const { plan, isLoading, isSaving, error, loadPlan, savePlan, transformApiToForm } = usePlanEditor();
+  const {
+    plan,
+    initialData,
+    mode,
+    isLoading,
+    isSaving,
+    error,
+    loadPlan,
+    loadFromLocalStorage,
+    savePlan,
+    transformApiToForm,
+    transformInitialDataToForm,
+  } = usePlanEditor();
 
   // Initialize form with validation
   const form = useForm<PlanEditorFormValues>({
@@ -117,26 +130,36 @@ export function PlanEditorView({ planId }: PlanEditorViewProps) {
     name: "days",
   });
 
-  // Load plan data on mount
+  // Load plan data on mount - either from API (edit mode) or localStorage (create mode)
   useEffect(() => {
     const initializePlan = async () => {
-      const loadedPlan = await loadPlan(planId);
-      if (loadedPlan) {
-        const formValues = transformApiToForm(loadedPlan);
-        form.reset(formValues);
+      if (planId) {
+        // Edit mode: load existing plan from API
+        const loadedPlan = await loadPlan(planId);
+        if (loadedPlan) {
+          const formValues = transformApiToForm(loadedPlan);
+          form.reset(formValues);
+        }
+      } else {
+        // Create mode: load from localStorage
+        const loadedData = loadFromLocalStorage();
+        if (loadedData) {
+          const formValues = transformInitialDataToForm(loadedData);
+          form.reset(formValues);
+        }
       }
     };
 
     initializePlan();
-  }, [planId, loadPlan, transformApiToForm, form]);
+  }, [planId, loadPlan, loadFromLocalStorage, transformApiToForm, transformInitialDataToForm, form]);
 
   // Handle form submission
   const onSubmit = useCallback(
     async (values: PlanEditorFormValues) => {
-      const result = await savePlan(planId, values);
+      const result = await savePlan(planId ?? null, values);
       if (result) {
         // Redirect to plan details after successful save
-        window.location.href = `/plans/${planId}`;
+        window.location.href = `/plans/${result.id}`;
       }
     },
     [planId, savePlan]
@@ -151,13 +174,23 @@ export function PlanEditorView({ planId }: PlanEditorViewProps) {
 
   // Handle cancel/back navigation
   const handleCancel = useCallback(() => {
-    window.location.href = `/plans/${planId}`;
+    if (planId) {
+      // Edit mode: go back to plan details
+      window.location.href = `/plans/${planId}`;
+    } else {
+      // Create mode: go back to generate page
+      window.location.href = "/generate";
+    }
   }, [planId]);
 
   // Handle retry on error
   const handleRetry = useCallback(() => {
-    loadPlan(planId);
-  }, [loadPlan, planId]);
+    if (planId) {
+      loadPlan(planId);
+    } else {
+      loadFromLocalStorage();
+    }
+  }, [loadPlan, loadFromLocalStorage, planId]);
 
   // Loading state
   if (isLoading) {
@@ -177,8 +210,8 @@ export function PlanEditorView({ planId }: PlanEditorViewProps) {
     );
   }
 
-  // No plan loaded
-  if (!plan) {
+  // No data loaded (neither plan for edit mode nor initialData for create mode)
+  if (!plan && !initialData) {
     return (
       <div className="container mx-auto max-w-4xl px-4 py-8">
         <EditorErrorState message="Plan nie został znaleziony" onRetry={handleRetry} />
@@ -205,8 +238,10 @@ export function PlanEditorView({ planId }: PlanEditorViewProps) {
                 <ArrowLeft className="size-5" />
               </Button>
               <div>
-                <h1 className="text-2xl font-bold">Edytuj plan</h1>
-                <p className="text-sm text-muted-foreground">Modyfikuj harmonogram treningowy</p>
+                <h1 className="text-2xl font-bold">{mode === "create" ? "Edytuj nowy plan" : "Edytuj plan"}</h1>
+                <p className="text-sm text-muted-foreground">
+                  {mode === "create" ? "Dostosuj wygenerowany plan przed zapisaniem" : "Modyfikuj harmonogram treningowy"}
+                </p>
               </div>
             </div>
 
@@ -223,7 +258,7 @@ export function PlanEditorView({ planId }: PlanEditorViewProps) {
                 ) : (
                   <>
                     <Save className="size-4" />
-                    Zapisz zmiany
+                    {mode === "create" ? "Zapisz plan" : "Zapisz zmiany"}
                   </>
                 )}
               </Button>
@@ -362,7 +397,7 @@ export function PlanEditorView({ planId }: PlanEditorViewProps) {
               ) : (
                 <>
                   <Save className="size-4" />
-                  Zapisz
+                  {mode === "create" ? "Zapisz" : "Zapisz"}
                 </>
               )}
             </Button>
