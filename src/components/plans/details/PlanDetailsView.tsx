@@ -269,8 +269,8 @@ export function PlanDetailsView({ planId }: PlanDetailsViewProps) {
   const completedDays = sortedDays.filter(([, day]) => day.done).length;
   const totalDays = sortedDays.length;
 
-  // Check if "Generate next cycle" button should be visible (only for completed plans)
-  const canGenerateNextCycle = status === "completed";
+  // "Generate next cycle" button is always visible - user can prepare next cycle anytime
+  const canGenerateNextCycle = true;
 
   return (
     <div className="container mx-auto max-w-4xl px-4 py-8">

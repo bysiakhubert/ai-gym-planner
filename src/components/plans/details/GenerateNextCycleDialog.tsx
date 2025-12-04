@@ -194,29 +194,18 @@ function PreviewState({
  * Error state for generation failures
  */
 function ErrorState({ error, onRetry }: { error: ApiError; onRetry: () => void }) {
-  const isNoSessionsError = error.message?.includes("session") || error.error === "ValidationError";
-
   return (
     <div className="space-y-4 py-4">
       <Alert variant="destructive">
         <AlertCircle className="size-4" />
-        <AlertTitle>{isNoSessionsError ? "Brak historii treningowej" : "Błąd generowania"}</AlertTitle>
+        <AlertTitle>Błąd generowania</AlertTitle>
         <AlertDescription className="mt-2">
-          {isNoSessionsError ? (
-            <span>
-              Nie można wygenerować progresji, ponieważ nie odnotowano żadnych sesji treningowych dla tego planu. Rozważ
-              ręczne utworzenie nowego planu lub edycję obecnego.
-            </span>
-          ) : (
-            <span>{error.message || "Wystąpił problem z generowaniem planu. Spróbuj ponownie później."}</span>
-          )}
+          <span>{error.message || "Wystąpił problem z generowaniem planu. Spróbuj ponownie później."}</span>
         </AlertDescription>
       </Alert>
-      {!isNoSessionsError && (
-        <Button type="button" variant="outline" onClick={onRetry}>
-          Spróbuj ponownie
-        </Button>
-      )}
+      <Button type="button" variant="outline" onClick={onRetry}>
+        Spróbuj ponownie
+      </Button>
     </div>
   );
 }

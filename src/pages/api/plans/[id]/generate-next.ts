@@ -2,7 +2,7 @@ import type { APIRoute } from "astro";
 import type { ApiError, GenerateNextCycleRequest } from "src/types";
 import { z } from "zod";
 import { planService, PlanNotFoundError } from "src/lib/services/planService";
-import { sessionService, NoSessionsError } from "src/lib/services/sessionService";
+import { sessionService } from "src/lib/services/sessionService";
 import { AiPlannerService } from "src/lib/services/aiPlannerService";
 import { auditLogService } from "src/lib/services/auditLogService";
 import { DEFAULT_USER_ID } from "src/db/supabase.client";
@@ -97,21 +97,8 @@ export const POST: APIRoute = async ({ params, request, locals }) => {
     // Step 3: Fetch the current plan
     const currentPlan = await planService.getPlanById(supabase, userId, planId);
 
-    // Step 4: Check if plan has completed sessions
-    const hasSessions = await sessionService.hasCompletedSessions(supabase, userId, planId);
-
-    if (!hasSessions) {
-      const errorResponse: ApiError = {
-        error: "ValidationError",
-        message: "Cannot generate next cycle: no completed training sessions found for this plan",
-      };
-      return new Response(JSON.stringify(errorResponse), {
-        status: 400,
-        headers: { "Content-Type": "application/json" },
-      });
-    }
-
-    // Step 5: Fetch completed sessions for AI analysis
+    // Step 4: Fetch completed sessions for AI analysis (may be empty)
+    // When no sessions exist, AI will generate a plan based on current structure and user notes
     const sessionHistory = await sessionService.getCompletedSessions(
       supabase,
       userId,
@@ -168,18 +155,6 @@ export const POST: APIRoute = async ({ params, request, locals }) => {
       };
       return new Response(JSON.stringify(errorResponse), {
         status: 404,
-        headers: { "Content-Type": "application/json" },
-      });
-    }
-
-    // Handle no sessions error
-    if (error instanceof NoSessionsError) {
-      const errorResponse: ApiError = {
-        error: "ValidationError",
-        message: error.message,
-      };
-      return new Response(JSON.stringify(errorResponse), {
-        status: 400,
         headers: { "Content-Type": "application/json" },
       });
     }

@@ -3,8 +3,12 @@
  *
  * Wrapper around Calendar and Popover components with proper
  * form integration and formatting.
+ *
+ * Uses controlled Popover state to fix Chrome browser issue where
+ * the popover would close before date selection was processed.
  */
 
+import { useState } from "react";
 import { format, parseISO } from "date-fns";
 import { pl } from "date-fns/locale";
 import { CalendarIcon } from "lucide-react";
@@ -22,6 +26,9 @@ interface DatePickerProps {
 }
 
 export function DatePicker({ value, onChange, placeholder = "Wybierz datę", disabled, className }: DatePickerProps) {
+  // Control popover state to ensure proper date selection in Chrome
+  const [open, setOpen] = useState(false);
+
   // Parse the ISO string to Date object for the calendar
   const selectedDate = value ? parseISO(value) : undefined;
 
@@ -30,11 +37,13 @@ export function DatePicker({ value, onChange, placeholder = "Wybierz datę", dis
       // Format back to ISO date string
       const isoDate = format(date, "yyyy-MM-dd");
       onChange(isoDate);
+      // Close popover after selection
+      setOpen(false);
     }
   };
 
   return (
-    <Popover>
+    <Popover open={open} onOpenChange={setOpen}>
       <PopoverTrigger asChild>
         <Button
           type="button"

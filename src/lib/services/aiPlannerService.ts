@@ -177,8 +177,14 @@ export class AiPlannerService {
   private analyzeProgressionChanges(sessionHistory: CompletedSessionData[], notes?: string): string[] {
     const changes: string[] = [];
 
+    // Add note-based changes first if provided (highest priority)
+    if (notes) {
+      changes.push(`Uwagi użytkownika uwzględnione: ${notes}`);
+    }
+
+    // When no session history exists, just copy the plan structure
     if (sessionHistory.length === 0) {
-      changes.push("No previous session data - maintaining current baseline");
+      changes.push("Zachowano strukturę poprzedniego planu (brak historii treningowej)");
       return changes;
     }
 
@@ -202,23 +208,16 @@ export class AiPlannerService {
     for (const [exerciseName, stats] of exercisePerformance) {
       const completionRate = stats.completedSets / stats.totalSets;
       if (completionRate >= 0.9) {
-        changes.push(
-          `Increase weight for ${exerciseName} by 5% (completion rate: ${Math.round(completionRate * 100)}%)`
-        );
+        const msg = `Zwiększono ciężar dla ${exerciseName} o 5% (wykonanie: ${Math.round(completionRate * 100)}%)`;
+        changes.push(msg);
       } else if (completionRate < 0.7) {
-        changes.push(
-          `Maintain or reduce weight for ${exerciseName} (completion rate: ${Math.round(completionRate * 100)}%)`
-        );
+        const msg = `Utrzymano lub zmniejszono ciężar dla ${exerciseName} (wykonanie: ${Math.round(completionRate * 100)}%)`;
+        changes.push(msg);
       }
     }
 
-    // Add note-based changes if provided
-    if (notes) {
-      changes.push(`Focus area adjustment: ${notes}`);
-    }
-
-    if (changes.length === 0) {
-      changes.push("Maintaining current progression - all exercises at optimal completion rates");
+    if (changes.length === 0 || (changes.length === 1 && notes)) {
+      changes.push("Utrzymano dotychczasową progresję - wszystkie ćwiczenia na optymalnym poziomie wykonania");
     }
 
     return changes;
