@@ -1,0 +1,19 @@
+---
+import Layout from "@/layouts/Layout.astro";
+import { SessionDetailsView } from "@/components/history/SessionDetailsView";
+
+export const prerender = false;
+
+const { id } = Astro.params;
+
+// Validate session ID format (UUID)
+const uuidRegex = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+if (!id || !uuidRegex.test(id)) {
+  return Astro.redirect("/history");
+}
+---
+
+<Layout title="GymPlanner - Szczegóły treningu">
+  <SessionDetailsView sessionId={id} client:load />
+</Layout>
+
