@@ -22,6 +22,7 @@ import {
   RefreshCw,
   CheckCircle2,
   RotateCcw,
+  Archive,
 } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
@@ -30,8 +31,9 @@ import { Badge } from "@/components/ui/badge";
 import { Alert, AlertTitle, AlertDescription } from "@/components/ui/alert";
 import { SafetyDisclaimer } from "@/components/SafetyDisclaimer";
 import { GenerateNextCycleDialog } from "./GenerateNextCycleDialog";
+import { ArchiveConfirmationDialog } from "@/components/plans/list/ArchiveConfirmationDialog";
 
-import { fetchPlan } from "@/lib/api/plans";
+import { fetchPlan, archivePlan } from "@/lib/api/plans";
 import type { PlanResponse, ApiError, WorkoutDay } from "@/types";
 
 interface PlanDetailsViewProps {
@@ -197,6 +199,8 @@ export function PlanDetailsView({ planId }: PlanDetailsViewProps) {
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<ApiError | null>(null);
   const [isGenerateModalOpen, setIsGenerateModalOpen] = useState(false);
+  const [isArchiveDialogOpen, setIsArchiveDialogOpen] = useState(false);
+  const [isArchiving, setIsArchiving] = useState(false);
 
   const loadPlan = useCallback(async () => {
     setIsLoading(true);
@@ -231,6 +235,33 @@ export function PlanDetailsView({ planId }: PlanDetailsViewProps) {
   const handlePlanCreated = (newPlanId: string) => {
     toast.success("Nowy plan został utworzony!");
     window.location.href = `/plans/${newPlanId}`;
+  };
+
+  const handleArchiveClick = () => {
+    setIsArchiveDialogOpen(true);
+  };
+
+  const handleArchiveCancel = () => {
+    setIsArchiveDialogOpen(false);
+  };
+
+  const handleArchiveConfirm = async () => {
+    setIsArchiving(true);
+    const toastId = toast.loading("Archiwizowanie planu...");
+
+    try {
+      await archivePlan(planId);
+      toast.success("Plan został zarchiwizowany", { id: toastId });
+      // Redirect to plans list after successful archive
+      window.location.href = "/plans";
+    } catch (err) {
+      const apiError = err as ApiError;
+      // eslint-disable-next-line no-console
+      console.error("Failed to archive plan:", apiError);
+      toast.error(apiError.message || "Nie udało się zarchiwizować planu", { id: toastId });
+      setIsArchiving(false);
+      setIsArchiveDialogOpen(false);
+    }
   };
 
   // Loading state
@@ -303,9 +334,13 @@ export function PlanDetailsView({ planId }: PlanDetailsViewProps) {
               Generuj kolejny cykl
             </Button>
           )}
-          <Button onClick={handleEdit} className="gap-2">
+          <Button onClick={handleEdit} variant="outline" className="gap-2">
             <Pencil className="size-4" />
             Edytuj plan
+          </Button>
+          <Button onClick={handleArchiveClick} variant="destructive" className="gap-2">
+            <Archive className="size-4" />
+            Archiwizuj
           </Button>
         </div>
       </div>
@@ -383,6 +418,15 @@ export function PlanDetailsView({ planId }: PlanDetailsViewProps) {
         isOpen={isGenerateModalOpen}
         onOpenChange={setIsGenerateModalOpen}
         onPlanCreated={handlePlanCreated}
+      />
+
+      {/* Archive Confirmation Dialog */}
+      <ArchiveConfirmationDialog
+        open={isArchiveDialogOpen}
+        planName={plan.name}
+        onConfirm={handleArchiveConfirm}
+        onCancel={handleArchiveCancel}
+        isSubmitting={isArchiving}
       />
     </div>
   );

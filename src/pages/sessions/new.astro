@@ -1,0 +1,112 @@
+---
+import Layout from "@/layouts/Layout.astro";
+import type { PlanResponse, CreateSessionRequest, SessionStructure, SessionSet } from "@/types";
+
+export const prerender = false;
+
+// Get query parameters
+const planId = Astro.url.searchParams.get("planId");
+const date = Astro.url.searchParams.get("date");
+
+// Validate required parameters
+if (!planId || !date) {
+  return Astro.redirect("/?error=missing_params");
+}
+
+let errorMessage: string | undefined;
+
+try {
+  // Step 1: Fetch the plan to get workout data
+  const planResponse = await fetch(new URL(`/api/plans/${planId}`, Astro.url.origin));
+
+  if (!planResponse.ok) {
+    if (planResponse.status === 404) {
+      return Astro.redirect("/?error=plan_not_found");
+    }
+    errorMessage = "Nie udało się pobrać planu treningowego.";
+  } else {
+    const plan: PlanResponse = await planResponse.json();
+
+    // Step 2: Find the workout day for the given date
+    const workoutDay = plan.plan.schedule[date];
+
+    if (!workoutDay) {
+      return Astro.redirect(`/plans/${planId}?error=no_workout_for_date`);
+    }
+
+    // Step 2b: Check if workout is already completed
+    if (workoutDay.done) {
+      return Astro.redirect(`/plans/${planId}?error=workout_already_completed`);
+    }
+
+    // Step 3: Transform workout data to session structure
+    const sessionStructure: SessionStructure = {
+      plan_name: plan.name,
+      day_name: workoutDay.name,
+      date: date,
+      exercises: workoutDay.exercises.map((exercise) => ({
+        name: exercise.name,
+        sets: exercise.sets.map((set): SessionSet => ({
+          planned_reps: set.reps,
+          planned_weight: set.weight,
+          actual_reps: null,
+          actual_weight: null,
+          rest_seconds: set.rest_seconds,
+          completed: false,
+        })),
+      })),
+    };
+
+    // Step 4: Create the session via API
+    const createRequest: CreateSessionRequest = {
+      plan_id: planId,
+      date: date,
+      session: sessionStructure,
+    };
+
+    const sessionResponse = await fetch(new URL("/api/sessions", Astro.url.origin), {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify(createRequest),
+    });
+
+    if (!sessionResponse.ok) {
+      const errorData = await sessionResponse.json();
+      
+      // Check if there's already an active session
+      if (sessionResponse.status === 409) {
+        // Redirect to active session
+        return Astro.redirect("/session/active");
+      }
+
+      errorMessage = errorData.message || "Nie udało się rozpocząć sesji treningowej.";
+    } else {
+      // Session created successfully - redirect to active session
+      return Astro.redirect("/session/active");
+    }
+  }
+} catch (error) {
+  console.error("Session start error:", error);
+  errorMessage = "Wystąpił błąd podczas rozpoczynania sesji treningowej.";
+}
+---
+
+<Layout title="GymPlanner - Rozpocznij trening">
+  <div class="container mx-auto px-4 py-8">
+    <div class="max-w-lg mx-auto">
+      <div class="bg-destructive/10 border border-destructive rounded-lg p-6 text-center">
+        <h1 class="text-xl font-semibold text-destructive mb-2">Błąd rozpoczęcia treningu</h1>
+        <p class="text-muted-foreground mb-4">{errorMessage}</p>
+        <a
+          href="/"
+          class="inline-flex items-center justify-center rounded-md text-sm font-medium bg-primary text-primary-foreground h-10 px-4 py-2 hover:bg-primary/90"
+        >
+          Wróć do pulpitu
+        </a>
+      </div>
+    </div>
+  </div>
+</Layout>
+

@@ -1,0 +1,56 @@
+---
+import Layout from "@/layouts/Layout.astro";
+import { ActiveSessionView } from "@/components/session/ActiveSessionView";
+import type { SessionResponse } from "@/types";
+
+export const prerender = false;
+
+let sessionData: SessionResponse | null = null;
+let errorMessage: string | undefined;
+
+try {
+  // Fetch active (uncompleted) session from API
+  const params = new URLSearchParams({
+    completed: "false",
+    limit: "1",
+    sort: "started_at",
+    order: "desc",
+  });
+
+  const listResponse = await fetch(new URL(`/api/sessions?${params.toString()}`, Astro.url.origin));
+
+  if (!listResponse.ok) {
+    errorMessage = "Nie udało się pobrać listy sesji.";
+  } else {
+    const listData = await listResponse.json();
+
+    if (listData.sessions.length === 0) {
+      // No active session - redirect to dashboard
+      return Astro.redirect("/?message=no_active_session");
+    }
+
+    // Fetch full session details
+    const sessionId = listData.sessions[0].id;
+    const sessionResponse = await fetch(new URL(`/api/sessions/${sessionId}`, Astro.url.origin));
+
+    if (!sessionResponse.ok) {
+      errorMessage = "Nie udało się pobrać szczegółów sesji.";
+    } else {
+      sessionData = await sessionResponse.json();
+    }
+  }
+} catch (error) {
+  console.error("Session fetch error:", error);
+  errorMessage = "Wystąpił błąd podczas ładowania sesji treningowej.";
+}
+
+// If no session data and no error, something went wrong
+if (!sessionData && !errorMessage) {
+  return Astro.redirect("/?message=session_error");
+}
+---
+
+<Layout title="GymPlanner - Sesja Treningowa" hideNavigation={true}>
+  <ActiveSessionView client:only="react" initialSession={sessionData} error={errorMessage} />
+</Layout>
+

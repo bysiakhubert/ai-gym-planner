@@ -58,7 +58,7 @@ Zarządzanie stanem opiera się na kontekście React dla danych globalnych (np. 
 - **Ścieżka:** `/plans/:id`
 - **Główny cel:** Wyświetlenie pełnej struktury wybranego planu.
 - **Kluczowe informacje:** Nazwa planu, daty, pełna lista dni treningowych z ćwiczeniami, seriami, powtórzeniami i przerwami.
-- **Kluczowe komponenty:** Widok planu (tylko do odczytu) w formie długiej, przewijanej listy. Przyciski "Wygeneruj kolejny cykl" i "Edytuj plan" na górze strony.
+- **Kluczowe komponenty:** Widok planu (tylko do odczytu) w formie długiej, przewijanej listy. Przyciski "Wygeneruj kolejny cykl", "Edytuj plan", "Archizuj plan" na górze strony.
 - **UX, dostępność i względy bezpieczeństwa:** Długie plany są prezentowane w sposób czytelny, z wyraźnymi separatorami między dniami.
 
 #### **Nazwa widoku:** Tworzenie / Edycja Planu
