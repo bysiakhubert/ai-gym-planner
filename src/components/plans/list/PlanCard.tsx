@@ -17,11 +17,12 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { MoreVertical, Pencil, Archive, Sparkles, User, Calendar } from "lucide-react";
+import { MoreVertical, Pencil, Archive, Sparkles, User, Calendar, Copy } from "lucide-react";
 
 interface PlanCardProps {
   plan: PlanSummary & { status: PlanStatus };
   onArchive: (plan: PlanSummary) => void;
+  onContinue: (plan: PlanSummary) => void;
 }
 
 /**
@@ -77,7 +78,7 @@ function SourceIcon({ source }: { source: string }) {
   );
 }
 
-export function PlanCard({ plan, onArchive }: PlanCardProps) {
+export function PlanCard({ plan, onArchive, onContinue }: PlanCardProps) {
   const { label: statusLabel, className: statusClassName } = statusConfig[plan.status];
 
   const handleCardClick = (e: React.MouseEvent) => {
@@ -94,6 +95,11 @@ export function PlanCard({ plan, onArchive }: PlanCardProps) {
       e.preventDefault();
       window.location.href = `/plans/${plan.id}`;
     }
+  };
+
+  const handleContinue = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    onContinue(plan);
   };
 
   return (
@@ -125,6 +131,10 @@ export function PlanCard({ plan, onArchive }: PlanCardProps) {
               </Button>
             </DropdownMenuTrigger>
             <DropdownMenuContent align="end">
+              <DropdownMenuItem onClick={handleContinue}>
+                <Copy className="size-4" />
+                Kontynuuj
+              </DropdownMenuItem>
               <DropdownMenuItem asChild>
                 <a href={`/plans/${plan.id}/edit`} className="cursor-pointer">
                   <Pencil className="size-4" />

@@ -9,6 +9,7 @@ import type {
   PaginatedPlansResponse,
   ListPlansQueryParams,
   ArchivePlanResponse,
+  ContinuePlanRequest,
 } from "src/types";
 import type { Json } from "src/db/database.types";
 import { auditLogService } from "./auditLogService";
@@ -31,6 +32,43 @@ export class PlanNotFoundError extends Error {
     super(`Plan with id "${planId}" not found`);
     this.name = "PlanNotFoundError";
   }
+}
+
+/**
+ * Helper function to shift all dates in a plan structure by a given number of days
+ *
+ * @param planStructure - The original plan structure
+ * @param daysOffset - Number of days to shift (positive for future, negative for past)
+ * @returns A new plan structure with shifted dates
+ */
+function shiftPlanDates(planStructure: PlanStructure, daysOffset: number): PlanStructure {
+  const newSchedule: Record<string, typeof planStructure.schedule[string]> = {};
+
+  for (const [dateKey, workoutDay] of Object.entries(planStructure.schedule)) {
+    // Parse the original date
+    const originalDate = new Date(dateKey);
+    
+    // Add the offset in days
+    const shiftedDate = new Date(originalDate);
+    shiftedDate.setDate(shiftedDate.getDate() + daysOffset);
+    
+    // Format as YYYY-MM-DD
+    const newDateKey = shiftedDate.toISOString().split('T')[0];
+    
+    // Deep copy the workout day to avoid mutation
+    newSchedule[newDateKey] = {
+      ...workoutDay,
+      done: false, // Reset done status for new plan
+      exercises: workoutDay.exercises.map(exercise => ({
+        ...exercise,
+        sets: exercise.sets.map(set => ({ ...set }))
+      }))
+    };
+  }
+
+  return {
+    schedule: newSchedule
+  };
 }
 
 /**
@@ -411,5 +449,62 @@ export const planService = {
       created_at: updatedPlan.created_at,
       updated_at: updatedPlan.updated_at,
     };
+  },
+
+  /**
+   * Continues/duplicates an existing plan with shifted dates
+   *
+   * Creates a new plan based on an existing one, shifting all workout dates
+   * to start from a new effective_from date while preserving the workout structure
+   * and rest day intervals.
+   *
+   * @param supabase - Supabase client instance
+   * @param userId - ID of the user
+   * @param sourcePlanId - ID of the plan to duplicate
+   * @param data - Continue plan request data with new effective_from date and optional name
+   * @returns The newly created plan with shifted dates
+   * @throws {PlanNotFoundError} If the source plan doesn't exist or doesn't belong to the user
+   * @throws {DateOverlapError} If the new plan dates overlap with existing non-archived plans
+   * @throws {Error} If database operation fails
+   */
+  continuePlan: async (
+    supabase: SupabaseClient,
+    userId: string,
+    sourcePlanId: string,
+    data: ContinuePlanRequest
+  ): Promise<PlanResponse> => {
+    // Step 1: Fetch the source plan
+    const sourcePlan = await planService.getPlanById(supabase, userId, sourcePlanId);
+
+    // Step 2: Calculate the time delta in days
+    const originalEffectiveFrom = new Date(sourcePlan.effective_from);
+    const newEffectiveFrom = new Date(data.effective_from);
+    const timeDeltaDays = Math.round(
+      (newEffectiveFrom.getTime() - originalEffectiveFrom.getTime()) / (1000 * 60 * 60 * 24)
+    );
+
+    // Step 3: Shift the plan dates
+    const shiftedPlanStructure = shiftPlanDates(sourcePlan.plan, timeDeltaDays);
+
+    // Step 4: Calculate new effective_to date
+    const originalEffectiveTo = new Date(sourcePlan.effective_to);
+    const newEffectiveTo = new Date(originalEffectiveTo);
+    newEffectiveTo.setDate(newEffectiveTo.getDate() + timeDeltaDays);
+
+    // Step 5: Generate new plan name if not provided
+    const newPlanName = data.name ?? `Copy of ${sourcePlan.name}`;
+
+    // Step 6: Create the new plan using createPlan method (includes overlap check and audit logging)
+    const createPlanRequest: CreatePlanRequest = {
+      name: newPlanName,
+      effective_from: newEffectiveFrom.toISOString(),
+      effective_to: newEffectiveTo.toISOString(),
+      source: sourcePlan.source,
+      prompt: sourcePlan.prompt,
+      preferences: sourcePlan.preferences,
+      plan: shiftedPlanStructure,
+    };
+
+    return await planService.createPlan(supabase, userId, createPlanRequest);
   },
 };

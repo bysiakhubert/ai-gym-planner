@@ -15,6 +15,7 @@ import type {
   GenerateNextCycleRequest,
   GenerateNextCycleResponse,
   CreatePlanRequest,
+  ContinuePlanRequest,
 } from "@/types";
 
 /**
@@ -149,6 +150,31 @@ export async function generateNextCycle(
  */
 export async function createPlan(data: CreatePlanRequest): Promise<PlanResponse> {
   const response = await fetch("/api/plans", {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify(data),
+  });
+
+  if (!response.ok) {
+    const errorData: ApiError = await response.json();
+    throw errorData;
+  }
+
+  return response.json();
+}
+
+/**
+ * Continues/duplicates an existing plan for a new time period
+ *
+ * @param planId - ID of the source plan to continue
+ * @param data - Continue plan parameters (start date, optional new name)
+ * @returns Promise resolving to newly created plan details
+ * @throws ApiError when the request fails (e.g., date overlap)
+ */
+export async function continuePlan(planId: string, data: ContinuePlanRequest): Promise<PlanResponse> {
+  const response = await fetch(`/api/plans/${planId}/continue`, {
     method: "POST",
     headers: {
       "Content-Type": "application/json",

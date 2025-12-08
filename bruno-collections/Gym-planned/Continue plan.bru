@@ -1,0 +1,59 @@
+meta {
+  name: Continue plan
+  type: http
+  seq: 4
+}
+
+post {
+  url: http://localhost:4321/api/plans/:planId/continue
+  body: json
+  auth: none
+}
+
+params:path {
+  planId: 
+}
+
+body:json {
+  {
+    "effective_from": "2025-02-01",
+    "name": "PPL Cycle 2"
+  }
+}
+
+docs {
+  # Continue/Duplicate Plan
+  
+  Creates a new plan based on an existing one, shifting all workout dates to start from a new effective_from date.
+  
+  ## Request Body
+  - `effective_from` (required): Start date for the new plan in YYYY-MM-DD format
+  - `name` (optional): Name for the new plan. If not provided, defaults to "Copy of [Original Name]"
+  
+  ## Usage Examples
+  
+  1. **Continue completed cycle with custom name:**
+  ```json
+  {
+    "effective_from": "2025-02-01",
+    "name": "PPL Cycle 2"
+  }
+  ```
+  
+  2. **Quick duplicate with auto-generated name:**
+  ```json
+  {
+    "effective_from": "2025-03-01"
+  }
+  ```
+  
+  ## Response
+  Returns the newly created plan with shifted dates (201 Created)
+  
+  ## Error Codes
+  - 400: Invalid plan ID or date format
+  - 404: Source plan not found
+  - 409: New plan dates overlap with existing plans
+  - 500: Internal server error
+}
+

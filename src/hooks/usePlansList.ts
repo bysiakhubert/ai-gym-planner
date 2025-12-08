@@ -44,6 +44,7 @@ interface UsePlansListActions {
   closeArchiveDialog: () => void;
   confirmArchive: () => Promise<void>;
   retry: () => Promise<void>;
+  refresh: () => Promise<void>;
 }
 
 type UsePlansListReturn = UsePlansListState & UsePlansListActions;
@@ -218,6 +219,13 @@ export function usePlansList(): UsePlansListReturn {
     setIsLoading(false);
   }, [fetchPlansData]);
 
+  /**
+   * Refreshes the plans list (e.g., after adding a new plan)
+   */
+  const refresh = useCallback(async () => {
+    await fetchPlansData(0, false);
+  }, [fetchPlansData]);
+
   return {
     plans,
     pagination,
@@ -231,5 +239,6 @@ export function usePlansList(): UsePlansListReturn {
     closeArchiveDialog,
     confirmArchive,
     retry,
+    refresh,
   };
 }

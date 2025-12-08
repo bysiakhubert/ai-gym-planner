@@ -159,6 +159,15 @@ export interface GenerateNextCycleRequest {
   notes?: string;
 }
 
+/**
+ * Request body for continuing/duplicating a plan
+ * POST /api/plans/:id/continue
+ */
+export interface ContinuePlanRequest {
+  effective_from: string; // ISO date string (YYYY-MM-DD)
+  name?: string;
+}
+
 // ============================================================================
 // Plans API - Response DTOs
 // ============================================================================

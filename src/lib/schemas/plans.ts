@@ -84,3 +84,12 @@ export const ListPlansQueryParamsSchema = z.object({
   sort: z.enum(["effective_from", "created_at", "name"]).default("effective_from"),
   order: z.enum(["asc", "desc"]).default("desc"),
 });
+
+/**
+ * Zod schema for continuing/duplicating a plan
+ * POST /api/plans/:id/continue
+ */
+export const ContinuePlanRequestSchema = z.object({
+  effective_from: z.string().regex(/^\d{4}-\d{2}-\d{2}$/, "effective_from must be in YYYY-MM-DD format"),
+  name: z.string().min(1, "Plan name cannot be empty").max(100, "Plan name must be 100 characters or less").optional(),
+});

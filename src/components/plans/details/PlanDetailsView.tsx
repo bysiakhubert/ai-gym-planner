@@ -23,6 +23,7 @@ import {
   CheckCircle2,
   RotateCcw,
   Archive,
+  Copy,
 } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
@@ -31,6 +32,7 @@ import { Badge } from "@/components/ui/badge";
 import { Alert, AlertTitle, AlertDescription } from "@/components/ui/alert";
 import { SafetyDisclaimer } from "@/components/SafetyDisclaimer";
 import { GenerateNextCycleDialog } from "./GenerateNextCycleDialog";
+import { ContinuePlanDialog } from "./ContinuePlanDialog";
 import { ArchiveConfirmationDialog } from "@/components/plans/list/ArchiveConfirmationDialog";
 
 import { fetchPlan, archivePlan } from "@/lib/api/plans";
@@ -199,6 +201,7 @@ export function PlanDetailsView({ planId }: PlanDetailsViewProps) {
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<ApiError | null>(null);
   const [isGenerateModalOpen, setIsGenerateModalOpen] = useState(false);
+  const [isContinueDialogOpen, setIsContinueDialogOpen] = useState(false);
   const [isArchiveDialogOpen, setIsArchiveDialogOpen] = useState(false);
   const [isArchiving, setIsArchiving] = useState(false);
 
@@ -232,8 +235,17 @@ export function PlanDetailsView({ planId }: PlanDetailsViewProps) {
     setIsGenerateModalOpen(true);
   };
 
+  const handleContinuePlan = () => {
+    setIsContinueDialogOpen(true);
+  };
+
   const handlePlanCreated = (newPlanId: string) => {
     toast.success("Nowy plan został utworzony!");
+    window.location.href = `/plans/${newPlanId}`;
+  };
+
+  const handleContinueSuccess = (newPlanId: string) => {
+    toast.success("Plan został skopiowany!");
     window.location.href = `/plans/${newPlanId}`;
   };
 
@@ -328,6 +340,10 @@ export function PlanDetailsView({ planId }: PlanDetailsViewProps) {
         </div>
 
         <div className="flex flex-wrap gap-2">
+          <Button onClick={handleContinuePlan} variant="outline" className="gap-2">
+            <Copy className="size-4" />
+            Kontynuuj plan
+          </Button>
           {canGenerateNextCycle && (
             <Button onClick={handleGenerateNextCycle} variant="outline" className="gap-2">
               <RotateCcw className="size-4" />
@@ -411,6 +427,16 @@ export function PlanDetailsView({ planId }: PlanDetailsViewProps) {
           </Card>
         )}
       </div>
+
+      {/* Continue Plan Dialog */}
+      <ContinuePlanDialog
+        planId={plan.id}
+        currentPlanName={plan.name}
+        currentPlanEndDate={plan.effective_to}
+        open={isContinueDialogOpen}
+        onOpenChange={setIsContinueDialogOpen}
+        onSuccess={handleContinueSuccess}
+      />
 
       {/* Generate Next Cycle Dialog */}
       <GenerateNextCycleDialog

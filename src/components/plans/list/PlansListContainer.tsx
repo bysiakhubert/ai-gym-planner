@@ -5,6 +5,8 @@
  * status filtering, and archive functionality.
  */
 
+import { useState } from "react";
+import { toast } from "sonner";
 import { usePlansList } from "@/hooks/usePlansList";
 import { PageHeader } from "./PageHeader";
 import { PlansGrid } from "./PlansGrid";
@@ -12,7 +14,9 @@ import { EmptyState } from "./EmptyState";
 import { ErrorState } from "./ErrorState";
 import { LoadingState } from "./LoadingState";
 import { ArchiveConfirmationDialog } from "./ArchiveConfirmationDialog";
+import { ContinuePlanDialog } from "@/components/plans/details/ContinuePlanDialog";
 import { Button } from "@/components/ui/button";
+import type { PlanSummary } from "@/types";
 
 export function PlansListContainer() {
   const {
@@ -28,7 +32,25 @@ export function PlansListContainer() {
     closeArchiveDialog,
     confirmArchive,
     retry,
+    refresh,
   } = usePlansList();
+
+  // State for continue plan dialog
+  const [planToContinue, setPlanToContinue] = useState<PlanSummary | null>(null);
+
+  const handleOpenContinueDialog = (plan: PlanSummary) => {
+    setPlanToContinue(plan);
+  };
+
+  const handleCloseContinueDialog = () => {
+    setPlanToContinue(null);
+  };
+
+  const handleContinueSuccess = () => {
+    toast.success("Plan został skopiowany i dodany do listy!");
+    setPlanToContinue(null);
+    refresh();
+  };
 
   // Loading state
   if (isLoading) {
@@ -65,7 +87,7 @@ export function PlansListContainer() {
     <div className="container mx-auto px-4 py-8">
       <PageHeader />
 
-      <PlansGrid plans={plans} onArchive={openArchiveDialog} />
+      <PlansGrid plans={plans} onArchive={openArchiveDialog} onContinue={handleOpenContinueDialog} />
 
       {/* Load more button */}
       {pagination?.has_more && (
@@ -74,6 +96,20 @@ export function PlansListContainer() {
             {isLoadingMore ? "Ładowanie..." : "Załaduj więcej"}
           </Button>
         </div>
+      )}
+
+      {/* Continue plan dialog */}
+      {planToContinue && (
+        <ContinuePlanDialog
+          planId={planToContinue.id}
+          currentPlanName={planToContinue.name}
+          currentPlanEndDate={planToContinue.effective_to}
+          open={planToContinue !== null}
+          onOpenChange={(open) => {
+            if (!open) handleCloseContinueDialog();
+          }}
+          onSuccess={handleContinueSuccess}
+        />
       )}
 
       {/* Archive confirmation dialog */}
