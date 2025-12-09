@@ -4,7 +4,7 @@
  * Displays the page title and a button to create a new plan.
  */
 
-import { Button } from "@/components/ui/button";
+import { NewPlanButton } from "@/components/NewPlanButton";
 
 export function PageHeader() {
   return (
@@ -14,9 +14,7 @@ export function PageHeader() {
         <p className="text-muted-foreground mt-1">Zarządzaj swoimi cyklami treningowymi</p>
       </div>
 
-      <Button asChild>
-        <a href="/generate">Nowy plan</a>
-      </Button>
+      <NewPlanButton variant="button" />
     </header>
   );
 }

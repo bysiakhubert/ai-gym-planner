@@ -29,7 +29,7 @@ const LOCALSTORAGE_KEY_PREVIEW = "ai_planner_preview";
 /**
  * Editor mode - determines if we're editing existing plan or creating new one
  */
-type EditorMode = "edit" | "create";
+type EditorMode = "edit" | "create" | "manual";
 
 /**
  * Initial data structure for create mode (from AI generation)
@@ -192,12 +192,12 @@ function formToApiTransformer(formValues: PlanEditorFormValues, existingPlan: Pl
  * Transforms form values to CreatePlanRequest for new plans
  *
  * @param formValues - Form values with days as array
- * @param initialData - Initial data with preferences and source
+ * @param initialData - Initial data with preferences and source (optional for manual mode)
  * @returns Create request for new plan
  */
 function formToCreateRequestTransformer(
   formValues: PlanEditorFormValues,
-  initialData: InitialPlanData
+  initialData?: InitialPlanData
 ): CreatePlanRequest {
   // Transform days array to schedule Record
   const schedule: PlanStructure["schedule"] = {};
@@ -225,9 +225,9 @@ function formToCreateRequestTransformer(
     name: formValues.name,
     effective_from: effectiveFrom,
     effective_to: effectiveTo,
-    source: initialData.source,
+    source: initialData?.source ?? "manual",
     prompt: null,
-    preferences: initialData.preferences,
+    preferences: initialData?.preferences ?? {},
     plan: { schedule },
   };
 }
@@ -271,11 +271,11 @@ export function usePlanEditor(): UsePlanEditorReturn {
   /**
    * Loads plan data from localStorage (create mode)
    * Used when editing a generated plan before saving
+   * Returns null without error if no data found (for manual mode)
    */
   const loadFromLocalStorage = useCallback((): InitialPlanData | null => {
     setIsLoading(true);
     setError(null);
-    setMode("create");
 
     try {
       // Try plan_to_edit key first (set by editPlan function)
@@ -287,13 +287,13 @@ export function usePlanEditor(): UsePlanEditorReturn {
       }
 
       if (!savedData) {
-        setError({
-          error: "NotFound",
-          message: "Nie znaleziono danych planu do edycji",
-        });
+        // No data in localStorage - this is OK for manual mode
+        setMode("manual");
         return null;
       }
 
+      // Data found - this is create mode (from AI)
+      setMode("create");
       const parsed = JSON.parse(savedData) as GeneratePlanResponse;
 
       // Transform GeneratePlanResponse to InitialPlanData
@@ -332,14 +332,16 @@ export function usePlanEditor(): UsePlanEditorReturn {
       try {
         let savedPlan: PlanResponse;
 
-        if (mode === "create" && initialData) {
-          // Create new plan
-          const createRequest = formToCreateRequestTransformer(formValues, initialData);
+        if (mode === "create" || mode === "manual") {
+          // Create new plan (from AI or manual)
+          const createRequest = formToCreateRequestTransformer(formValues, initialData ?? undefined);
           savedPlan = await createPlan(createRequest);
 
-          // Clear localStorage after successful save
-          localStorage.removeItem(LOCALSTORAGE_KEY_EDIT);
-          localStorage.removeItem(LOCALSTORAGE_KEY_PREVIEW);
+          // Clear localStorage after successful save (only if from AI)
+          if (mode === "create") {
+            localStorage.removeItem(LOCALSTORAGE_KEY_EDIT);
+            localStorage.removeItem(LOCALSTORAGE_KEY_PREVIEW);
+          }
 
           toast.success("Plan został utworzony", { id: toastId });
         } else if (plan && planId) {

@@ -5,7 +5,7 @@
  * all child components for editing plan metadata and schedule.
  */
 
-import { useEffect, useCallback } from "react";
+import { useEffect, useCallback, useState } from "react";
 import { useForm, useFieldArray, FormProvider } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { ArrowLeft, Save, Plus, Loader2 } from "lucide-react";
@@ -17,6 +17,16 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/com
 import { FormField, FormItem, FormLabel, FormControl, FormMessage } from "@/components/ui/form";
 import { Alert, AlertTitle, AlertDescription } from "@/components/ui/alert";
 import { AlertCircle, RefreshCw } from "lucide-react";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
 
 import { DayCard } from "./DayCard";
 import { DatePicker } from "./DatePicker";
@@ -109,6 +119,9 @@ export function PlanEditorView({ planId }: PlanEditorViewProps) {
     transformInitialDataToForm,
   } = usePlanEditor();
 
+  // State for cancel confirmation dialog
+  const [showCancelDialog, setShowCancelDialog] = useState(false);
+
   // Initialize form with validation
   const form = useForm<PlanEditorFormValues>({
     resolver: zodResolver(PlanEditorFormSchema),
@@ -130,7 +143,7 @@ export function PlanEditorView({ planId }: PlanEditorViewProps) {
     name: "days",
   });
 
-  // Load plan data on mount - either from API (edit mode) or localStorage (create mode)
+  // Load plan data on mount - either from API (edit mode), localStorage (create mode), or empty (manual mode)
   useEffect(() => {
     const initializePlan = async () => {
       if (planId) {
@@ -141,17 +154,45 @@ export function PlanEditorView({ planId }: PlanEditorViewProps) {
           form.reset(formValues);
         }
       } else {
-        // Create mode: load from localStorage
+        // Try to load from localStorage first (AI generation flow)
         const loadedData = loadFromLocalStorage();
         if (loadedData) {
           const formValues = transformInitialDataToForm(loadedData);
           form.reset(formValues);
+        } else {
+          // Manual mode: initialize empty form with default values
+          const today = new Date();
+          const nextWeek = new Date(today);
+          nextWeek.setDate(today.getDate() + 7);
+          
+          const defaultDate = today.toISOString().split("T")[0];
+          
+          form.reset({
+            name: "",
+            effective_from: defaultDate,
+            effective_to: nextWeek.toISOString().split("T")[0],
+            days: [createDefaultDayValues(defaultDate)],
+          });
         }
       }
     };
 
     initializePlan();
   }, [planId, loadPlan, loadFromLocalStorage, transformApiToForm, transformInitialDataToForm, form]);
+
+  // Protect against accidental browser close/refresh with unsaved changes
+  useEffect(() => {
+    const handleBeforeUnload = (e: BeforeUnloadEvent) => {
+      if (form.formState.isDirty && !form.formState.isSubmitSuccessful) {
+        e.preventDefault();
+        // Modern browsers ignore custom messages and show their own
+        e.returnValue = "";
+      }
+    };
+
+    window.addEventListener("beforeunload", handleBeforeUnload);
+    return () => window.removeEventListener("beforeunload", handleBeforeUnload);
+  }, [form.formState.isDirty, form.formState.isSubmitSuccessful]);
 
   // Handle form submission
   const onSubmit = useCallback(
@@ -174,14 +215,39 @@ export function PlanEditorView({ planId }: PlanEditorViewProps) {
 
   // Handle cancel/back navigation
   const handleCancel = useCallback(() => {
+    // Check if form has unsaved changes
+    if (form.formState.isDirty && !form.formState.isSubmitSuccessful) {
+      setShowCancelDialog(true);
+      return;
+    }
+
+    // No unsaved changes - navigate away
     if (planId) {
       // Edit mode: go back to plan details
       window.location.href = `/plans/${planId}`;
-    } else {
-      // Create mode: go back to generate page
+    } else if (mode === "create") {
+      // Create mode from AI: go back to generate page
       window.location.href = "/generate";
+    } else {
+      // Manual mode: go back to plans list
+      window.location.href = "/plans";
     }
-  }, [planId]);
+  }, [planId, mode, form.formState.isDirty, form.formState.isSubmitSuccessful]);
+
+  // Confirm cancel and navigate away (discard changes)
+  const confirmCancel = useCallback(() => {
+    setShowCancelDialog(false);
+    if (planId) {
+      // Edit mode: go back to plan details
+      window.location.href = `/plans/${planId}`;
+    } else if (mode === "create") {
+      // Create mode from AI: go back to generate page
+      window.location.href = "/generate";
+    } else {
+      // Manual mode: go back to plans list
+      window.location.href = "/plans";
+    }
+  }, [planId, mode]);
 
   // Handle retry on error
   const handleRetry = useCallback(() => {
@@ -210,8 +276,9 @@ export function PlanEditorView({ planId }: PlanEditorViewProps) {
     );
   }
 
-  // No data loaded (neither plan for edit mode nor initialData for create mode)
-  if (!plan && !initialData) {
+  // No data loaded - but this is OK for manual mode
+  // Only show error if we're in edit mode (planId exists) or create mode (should have initialData)
+  if (!plan && !initialData && mode !== "manual") {
     return (
       <div className="container mx-auto max-w-4xl px-4 py-8">
         <EditorErrorState message="Plan nie został znaleziony" onRetry={handleRetry} />
@@ -238,9 +305,15 @@ export function PlanEditorView({ planId }: PlanEditorViewProps) {
                 <ArrowLeft className="size-5" />
               </Button>
               <div>
-                <h1 className="text-2xl font-bold">{mode === "create" ? "Edytuj nowy plan" : "Edytuj plan"}</h1>
+                <h1 className="text-2xl font-bold">
+                  {mode === "create" ? "Edytuj nowy plan" : mode === "manual" ? "Nowy plan treningowy" : "Edytuj plan"}
+                </h1>
                 <p className="text-sm text-muted-foreground">
-                  {mode === "create" ? "Dostosuj wygenerowany plan przed zapisaniem" : "Modyfikuj harmonogram treningowy"}
+                  {mode === "create" 
+                    ? "Dostosuj wygenerowany plan przed zapisaniem" 
+                    : mode === "manual" 
+                    ? "Stwórz plan treningowy od podstaw"
+                    : "Modyfikuj harmonogram treningowy"}
                 </p>
               </div>
             </div>
@@ -258,7 +331,7 @@ export function PlanEditorView({ planId }: PlanEditorViewProps) {
                 ) : (
                   <>
                     <Save className="size-4" />
-                    {mode === "create" ? "Zapisz plan" : "Zapisz zmiany"}
+                    {mode === "create" || mode === "manual" ? "Zapisz plan" : "Zapisz zmiany"}
                   </>
                 )}
               </Button>
@@ -397,13 +470,32 @@ export function PlanEditorView({ planId }: PlanEditorViewProps) {
               ) : (
                 <>
                   <Save className="size-4" />
-                  {mode === "create" ? "Zapisz" : "Zapisz"}
+                  Zapisz
                 </>
               )}
             </Button>
           </div>
         </form>
       </FormProvider>
+
+      {/* Cancel confirmation dialog */}
+      <AlertDialog open={showCancelDialog} onOpenChange={setShowCancelDialog}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Niezapisane zmiany</AlertDialogTitle>
+            <AlertDialogDescription>
+              Masz niezapisane zmiany w planie treningowym. Czy na pewno chcesz opuścić stronę? Wszystkie zmiany
+              zostaną utracone.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Pozostań</AlertDialogCancel>
+            <AlertDialogAction onClick={confirmCancel} className="bg-destructive text-destructive-foreground hover:bg-destructive/90">
+              Opuść bez zapisywania
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 }

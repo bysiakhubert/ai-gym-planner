@@ -1,0 +1,17 @@
+---
+/**
+ * New plan page - Manual creation without AI
+ * 
+ * This page allows users to create a completely new training plan
+ * from scratch without AI generation.
+ */
+import Layout from "@/layouts/Layout.astro";
+import { PlanEditorView } from "@/components/plans/editor";
+
+export const prerender = false;
+---
+
+<Layout title="GymPlanner - Nowy plan treningowy">
+  <PlanEditorView client:load />
+</Layout>
+
