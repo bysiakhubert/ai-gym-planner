@@ -1,0 +1,17 @@
+---
+import AuthLayout from "@/layouts/AuthLayout.astro";
+import { RegisterForm } from "@/components/auth";
+
+// TODO: Add server-side check for existing session
+// If user is already logged in, redirect to dashboard (/)
+// Example:
+// const user = await getUser(Astro.cookies);
+// if (user) {
+//   return Astro.redirect("/");
+// }
+---
+
+<AuthLayout title="Rejestracja" description="Utwórz nowe konto w GymPlanner">
+  <RegisterForm client:load />
+</AuthLayout>
+
