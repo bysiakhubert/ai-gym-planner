@@ -24,11 +24,38 @@ ZASADY TWORZENIA PLANÓW:
 
 WAŻNE WYMAGANIA TECHNICZNE:
 - Zwracaj dane WYŁĄCZNIE w formacie JSON zgodnym z podanym schematem
-- NIE dodawaj żadnego tekstu przed ani po JSON
-- NIE używaj markdown formatowania (bez \`\`\`json)
+- NIE dodawaj żadnego tekstu przed ani po JSON (żadnych wyjaśnień, komentarzy czy formatowania markdown)
+- NIE używaj markdown formatowania (bez markdown, bez bloków kodu)
+- Odpowiedź musi zaczynać się od { i kończyć na }
 - Upewnij się, że wszystkie pola są wypełnione zgodnie z typami danych
-- Nazwy ćwiczeń podawaj po polsku, precyzyjnie i jednoznacznie
-- Czasy odpoczynku dostosuj do intensywności ćwiczenia (ciężkie: 120-180s, średnie: 60-90s, lekkie: 30-60s)`;
+- Nazwy ćwiczeń podawaj po polsku, precyzyjnie i jednoznacznie (np. "wyciskanie sztangi na ławce poziomej", nie "bench press")
+- Czasy odpoczynku dostosuj do intensywności ćwiczenia (ciężkie: 120-180s, średnie: 60-90s, lekkie: 30-60s)
+- Liczba serii powinna być między 3-5 dla większości ćwiczeń
+- Powtórzenia powinny być w zakresie 6-15 dla hipertrofii, 1-5 dla siły
+- Dla ćwiczeń izolowanych użyj wyższych powtórzeń (12-15), dla złożonych niższych (6-10)
+
+PRZYKŁAD POPRAWNEJ STRUKTURY JSON:
+{
+  "name": "4-tygodniowy program PPL siłowy",
+  "description": "Program Push-Pull-Legs z progresywnym przeciążaniem",
+  "cycle_duration_weeks": 4,
+  "schedule": [
+    {
+      "name": "Dzień Push A",
+      "exercises": [
+        {
+          "name": "wyciskanie sztangi na ławce poziomej",
+          "sets": [
+            {"reps": 8, "weight": 80, "rest_seconds": 150, "rir": 2},
+            {"reps": 8, "weight": 80, "rest_seconds": 150, "rir": 2},
+            {"reps": 6, "weight": 85, "rest_seconds": 150, "rir": 1}
+          ],
+          "notes": "Utrzymuj łokcie pod kątem 45 stopni do tułowia"
+        }
+      ]
+    }
+  ]
+}`;
 
 /**
  * Formats user preferences into a detailed user message prompt
@@ -56,7 +83,9 @@ DŁUGOŚĆ CYKLU: ${cycle_duration_weeks} tygodni`;
 - Dostosowany do wskazanego celu (${goal})
 - Zgodny z wybranym systemem treningowym (${system})
 - Możliwy do wykonania w czasie ${session_duration_minutes} minut
-- Bezpieczny i efektywny dla użytkownika`;
+- Bezpieczny i efektywny dla użytkownika
+
+PAMIĘTAJ: Twoja odpowiedź musi być WYŁĄCZNIE prawidłowym JSON bez żadnego dodatkowego tekstu.`;
 
   return prompt;
 }

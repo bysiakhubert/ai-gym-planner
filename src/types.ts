@@ -217,6 +217,7 @@ export interface GeneratePlanResponse {
   metadata: {
     model: string;
     generation_time_ms: number;
+    fallback_used?: boolean;
   };
 }
 

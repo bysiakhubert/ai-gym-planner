@@ -30,14 +30,18 @@ export class AiPlannerService {
     const systemPrompt = SYSTEM_MESSAGE;
     const userPrompt = formatUserPrompt(sanitizedPreferences);
 
-    // Call OpenRouter API with structured output
-    const aiResponse = await openRouterService.generateStructuredCompletion(
+    // Call OpenRouter API with structured output and fallback support
+    const completionResult = await openRouterService.generateStructuredCompletion<AiPlanResponse>(
       [
         { role: "system", content: systemPrompt },
         { role: "user", content: userPrompt },
       ],
       aiPlanSchema
     );
+
+    const aiResponse = completionResult.data;
+    const modelUsed = completionResult.model;
+    const fallbackUsed = completionResult.fallbackUsed;
 
     // Map AI response to domain format (PlanStructure)
     const schedule = this.mapAiResponseToSchedule(aiResponse, preferences);
@@ -61,8 +65,9 @@ export class AiPlannerService {
       },
       preferences,
       metadata: {
-        model: "google/gemini-2.0-flash-exp:free",
+        model: modelUsed,
         generation_time_ms: generationTimeMs,
+        fallback_used: fallbackUsed,
       },
     };
 

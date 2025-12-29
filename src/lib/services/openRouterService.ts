@@ -85,6 +85,15 @@ interface CompletionOptions {
 }
 
 /**
+ * Result of structured completion with model information
+ */
+interface StructuredCompletionResult<T> {
+  data: T;
+  model: string;
+  fallbackUsed: boolean;
+}
+
+/**
  * Message structure for chat completions
  */
 interface Message {
@@ -121,7 +130,7 @@ export class OpenRouterService {
   private siteUrl: string;
   private siteName: string;
   private readonly baseUrl = "https://openrouter.ai/api/v1";
-  private readonly defaultModel = "google/gemini-2.0-flash-exp:free";
+  private readonly modelsPriority = ["google/gemini-2.0-flash-exp:free", "openai/gpt-4o-mini"];
 
   /**
    * Creates a new OpenRouterService instance
@@ -146,114 +155,149 @@ export class OpenRouterService {
   }
 
   /**
-   * Generates a structured completion using OpenRouter API
+   * Generates a structured completion using OpenRouter API with fallback support
+   * Tries models in priority order until one succeeds
    * Returns parsed and validated data conforming to the provided Zod schema
    *
    * @template T - The expected response type (inferred from schema)
    * @param messages - Array of chat messages (system, user, assistant)
    * @param schema - Zod schema defining the expected response structure
-   * @param options - Optional configuration (model, temperature, max tokens)
-   * @returns Promise resolving to validated data of type T
-   * @throws {OpenRouterNetworkError} If network request fails
-   * @throws {OpenRouterAPIError} If API returns an error response
-   * @throws {OpenRouterParseError} If response parsing or validation fails
+   * @param options - Optional configuration (temperature, max tokens)
+   * @returns Promise resolving to result with data and model information
+   * @throws {OpenRouterNetworkError} If all models fail with network errors
+   * @throws {OpenRouterAPIError} If all models fail with API errors
+   * @throws {OpenRouterParseError} If all models fail with parse errors
    */
   async generateStructuredCompletion<T>(
     messages: Message[],
     schema: z.ZodType<T>,
     options: CompletionOptions = {}
-  ): Promise<T> {
+  ): Promise<StructuredCompletionResult<T>> {
     // Guard clause: Validate input messages
     if (!Array.isArray(messages) || messages.length === 0) {
       throw new OpenRouterParseError("Messages array cannot be empty");
     }
 
-    // Convert Zod schema to JSON Schema format for OpenRouter
-    const jsonSchema = this.transformSchemaToJsonSchema(schema);
+    // Try each model in priority order
+    let lastError: Error | null = null;
 
-    // Build request payload
-    const payload = {
-      model: options.model || this.defaultModel,
-      messages,
-      temperature: options.temperature ?? 0.2, // Low temperature for better structure
-      max_tokens: options.maxTokens ?? 4000,
-      response_format: {
-        type: "json_schema",
-        json_schema: {
-          name: "response",
-          strict: true, // Enforce exact schema matching
-          schema: jsonSchema,
-        },
-      },
-    };
+    for (let i = 0; i < this.modelsPriority.length; i++) {
+      const model = this.modelsPriority[i];
+      const isFallback = i > 0;
 
-    try {
-      // Make API request
-      const response = await fetch(`${this.baseUrl}/chat/completions`, {
-        method: "POST",
-        headers: {
-          Authorization: `Bearer ${this.apiKey}`,
-          "HTTP-Referer": this.siteUrl,
-          "X-Title": this.siteName,
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify(payload),
-      });
-
-      // Handle non-OK responses
-      if (!response.ok) {
-        const errorBody = await response.text();
-        throw new OpenRouterAPIError(
-          `OpenRouter API error: ${response.status} ${response.statusText}`,
-          response.status,
-          errorBody
-        );
-      }
-
-      // Parse JSON response
-      let data: OpenRouterResponse;
       try {
-        data = await response.json();
-      } catch {
-        throw new OpenRouterParseError("Failed to parse JSON response from OpenRouter API");
+        // Convert Zod schema to JSON Schema format for this specific model
+        const jsonSchema = this.transformSchemaToJsonSchema(schema, model);
+
+        // Build request payload
+        const payload = {
+          model,
+          messages,
+          temperature: options.temperature ?? 0.2, // Low temperature for better structure
+          max_tokens: options.maxTokens ?? 4000,
+          response_format: {
+            type: "json_schema",
+            json_schema: {
+              name: "response",
+              strict: true, // Enforce exact schema matching
+              schema: jsonSchema,
+            },
+          },
+        };
+
+        // Make API request
+        const response = await fetch(`${this.baseUrl}/chat/completions`, {
+          method: "POST",
+          headers: {
+            Authorization: `Bearer ${this.apiKey}`,
+            "HTTP-Referer": this.siteUrl,
+            "X-Title": this.siteName,
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify(payload),
+        });
+
+        // Handle non-OK responses
+        if (!response.ok) {
+          const errorBody = await response.text();
+          throw new OpenRouterAPIError(
+            `OpenRouter API error: ${response.status} ${response.statusText}`,
+            response.status,
+            errorBody
+          );
+        }
+
+        // Parse JSON response
+        let data: OpenRouterResponse;
+        try {
+          data = await response.json();
+        } catch {
+          throw new OpenRouterParseError("Failed to parse JSON response from OpenRouter API");
+        }
+
+        // Extract model output
+        const rawContent = data.choices[0]?.message?.content;
+
+        // Guard clause: Check if content exists
+        if (!rawContent) {
+          throw new OpenRouterParseError("Model returned empty content");
+        }
+
+        // Parse and validate structured output
+        const result = this.parseAndValidateOutput(rawContent, schema);
+
+        // Log fallback usage for monitoring
+        if (isFallback) {
+          // eslint-disable-next-line no-console
+          console.info(`AI generation fallback used: ${model} (primary model failed)`);
+        }
+
+        return {
+          data: result,
+          model,
+          fallbackUsed: isFallback,
+        };
+      } catch (error) {
+        lastError = error as Error;
+
+        // Log the failure for debugging
+        // eslint-disable-next-line no-console
+        console.warn(`Model ${model} failed: ${(error as Error).message}`);
+
+        // If this is not the last model, continue to the next one
+        if (i < this.modelsPriority.length - 1) {
+          continue;
+        }
+
+        // If this is the last model, re-throw the error
+        if (
+          error instanceof OpenRouterConfigurationError ||
+          error instanceof OpenRouterNetworkError ||
+          error instanceof OpenRouterAPIError ||
+          error instanceof OpenRouterParseError
+        ) {
+          throw error;
+        }
+
+        // Handle unknown network errors
+        if (error instanceof TypeError && error.message.includes("fetch")) {
+          throw new OpenRouterNetworkError(`Network error: ${error.message}`);
+        }
+
+        // Handle any other unexpected errors
+        throw new OpenRouterNetworkError(`Unexpected error: ${(error as Error).message}`);
       }
-
-      // Extract model output
-      const rawContent = data.choices[0]?.message?.content;
-
-      // Guard clause: Check if content exists
-      if (!rawContent) {
-        throw new OpenRouterParseError("Model returned empty content");
-      }
-
-      // Parse and validate structured output
-      return this.parseAndValidateOutput(rawContent, schema);
-    } catch (error) {
-      // Re-throw known errors
-      if (
-        error instanceof OpenRouterConfigurationError ||
-        error instanceof OpenRouterNetworkError ||
-        error instanceof OpenRouterAPIError ||
-        error instanceof OpenRouterParseError
-      ) {
-        throw error;
-      }
-
-      // Handle unknown network errors
-      if (error instanceof TypeError && error.message.includes("fetch")) {
-        throw new OpenRouterNetworkError(`Network error: ${error.message}`);
-      }
-
-      // Handle any other unexpected errors
-      throw new OpenRouterNetworkError(`Unexpected error: ${(error as Error).message}`);
     }
+
+    // This should never be reached, but just in case
+    throw lastError || new OpenRouterNetworkError("All models failed, no error captured");
   }
 
   /**
    * Converts Zod schema to JSON Schema format accepted by OpenRouter
    * @private
    */
-  private transformSchemaToJsonSchema(schema: z.ZodType): object {
+  private transformSchemaToJsonSchema(schema: z.ZodType, model?: string): object {
     try {
       const jsonSchema = zodToJsonSchema(schema, "response");
 
@@ -261,11 +305,72 @@ export class OpenRouterService {
       const cleanSchema = { ...jsonSchema };
       delete (cleanSchema as Record<string, unknown>).$schema;
 
+      // If schema has $ref at root level, unwrap it to get the actual definition
+      // This prevents invalid schemas where $ref has sibling keywords
+      if ("$ref" in cleanSchema && "definitions" in cleanSchema) {
+        const refPath = (cleanSchema as Record<string, unknown>).$ref as string;
+        const defName = refPath.split("/").pop();
+        const definitions = (cleanSchema as Record<string, unknown>).definitions as Record<string, unknown>;
+
+        if (defName && definitions[defName]) {
+          // Use the actual definition instead of the $ref wrapper
+          const unwrappedSchema = { ...definitions[defName] } as Record<string, unknown>;
+
+          // Azure provider requires all properties to be in required array, even optional ones
+          if (model === "openai/gpt-4o-mini") {
+            this.fixAzureRequiredFields(unwrappedSchema);
+          }
+
+          return unwrappedSchema;
+        }
+      }
+
+      // Ensure the root schema has type: "object" for OpenRouter compatibility
+      // Some providers (like Azure) require explicit type declarations
+      if (
+        typeof cleanSchema === "object" &&
+        cleanSchema !== null &&
+        !("type" in cleanSchema) &&
+        !("$ref" in cleanSchema)
+      ) {
+        (cleanSchema as Record<string, unknown>).type = "object";
+      }
+
+      // Azure provider requires all properties to be in required array, even optional ones
+      if (model === "openai/gpt-4o-mini") {
+        this.fixAzureRequiredFields(cleanSchema);
+      }
+
       return cleanSchema;
     } catch (error) {
       throw new OpenRouterConfigurationError(
         `Failed to convert Zod schema to JSON Schema: ${(error as Error).message}`
       );
+    }
+  }
+
+  /**
+   * Fixes JSON Schema for Azure provider compatibility
+   * Azure requires all properties to be listed in required array
+   */
+  private fixAzureRequiredFields(schema: unknown): void {
+    if (typeof schema !== "object" || schema === null) return;
+
+    const schemaObj = schema as Record<string, unknown>;
+
+    // If schema has properties, ensure all property keys are in required
+    if (schemaObj.properties && typeof schemaObj.properties === "object") {
+      const propertyKeys = Object.keys(schemaObj.properties);
+      if (propertyKeys.length > 0) {
+        schemaObj.required = propertyKeys;
+      }
+    }
+
+    // Recursively fix nested schemas
+    for (const key in schemaObj) {
+      if (schemaObj[key] && typeof schemaObj[key] === "object") {
+        this.fixAzureRequiredFields(schemaObj[key]);
+      }
     }
   }
 
@@ -331,8 +436,10 @@ export function getOpenRouterService(): OpenRouterService {
  */
 export const openRouterService = {
   generateStructuredCompletion: <T>(
-    ...args: Parameters<OpenRouterService["generateStructuredCompletion"]>
-  ): Promise<T> => {
-    return getOpenRouterService().generateStructuredCompletion<T>(...args);
+    messages: Message[],
+    schema: z.ZodType<T>,
+    options?: CompletionOptions
+  ): Promise<StructuredCompletionResult<T>> => {
+    return getOpenRouterService().generateStructuredCompletion<T>(messages, schema, options);
   },
 };
