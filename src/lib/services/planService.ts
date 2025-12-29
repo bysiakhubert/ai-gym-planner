@@ -13,6 +13,7 @@ import type {
 } from "src/types";
 import type { Json } from "src/db/database.types";
 import { auditLogService } from "./auditLogService";
+import { sessionService } from "./sessionService";
 
 /**
  * Custom error class for date overlap conflicts
@@ -289,6 +290,7 @@ export const planService = {
    * Archives a training plan (soft delete)
    *
    * Sets the archived flag to true instead of deleting the plan.
+   * Also closes any active training sessions associated with this plan.
    *
    * @param supabase - Supabase client instance
    * @param userId - ID of the user
@@ -318,7 +320,20 @@ export const planService = {
       };
     }
 
-    // Step 3: Update the plan to archived
+    // Step 3: Close any active sessions for this plan
+    try {
+      const closedCount = await sessionService.closeSessionsForPlan(supabase, userId, planId);
+      if (closedCount > 0) {
+        // eslint-disable-next-line no-console
+        console.info(`Closed ${closedCount} active session(s) for archived plan ${planId}`);
+      }
+    } catch (error) {
+      // Log error but don't fail the archival
+      // eslint-disable-next-line no-console
+      console.error(`Failed to close sessions for plan ${planId}:`, error);
+    }
+
+    // Step 4: Update the plan to archived
     const { error: updateError } = await supabase
       .from("plans")
       .update({ archived: true })
@@ -329,7 +344,7 @@ export const planService = {
       throw new Error(`Failed to archive plan: ${updateError.message}`);
     }
 
-    // Step 4: Log audit event
+    // Step 5: Log audit event
     await auditLogService.logEvent(supabase, userId, "plan_deleted", {
       entityType: "plan",
       entityId: planId,
@@ -338,7 +353,7 @@ export const planService = {
       },
     });
 
-    // Step 5: Return success response
+    // Step 6: Return success response
     return {
       message: "Plan archived successfully",
       id: planId,

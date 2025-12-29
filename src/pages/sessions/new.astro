@@ -77,8 +77,8 @@ try {
       
       // Check if there's already an active session
       if (sessionResponse.status === 409) {
-        // Redirect to active session
-        return Astro.redirect("/session/active");
+        // Redirect to conflict resolution page with context about requested session
+        return Astro.redirect(`/sessions/conflict?planId=${planId}&date=${date}`);
       }
 
       errorMessage = errorData.message || "Nie udało się rozpocząć sesji treningowej.";

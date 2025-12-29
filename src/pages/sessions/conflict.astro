@@ -1,0 +1,215 @@
+---
+import Layout from "@/layouts/Layout.astro";
+import type { SessionResponse } from "@/types";
+
+export const prerender = false;
+
+// Get query parameters - planId and date for the new session user wanted to start
+const requestedPlanId = Astro.url.searchParams.get("planId");
+const requestedDate = Astro.url.searchParams.get("date");
+
+let activeSession: SessionResponse | null = null;
+let errorMessage: string | undefined;
+
+try {
+  // Fetch the current active session
+  const params = new URLSearchParams({
+    completed: "false",
+    limit: "1",
+    sort: "started_at",
+    order: "desc",
+  });
+
+  const listResponse = await fetch(new URL(`/api/sessions?${params.toString()}`, Astro.url.origin));
+
+  if (!listResponse.ok) {
+    errorMessage = "Nie udało się pobrać informacji o aktywnej sesji.";
+  } else {
+    const listData = await listResponse.json();
+
+    if (listData.sessions.length === 0) {
+      // No active session - redirect back to start new session
+      if (requestedPlanId && requestedDate) {
+        return Astro.redirect(`/sessions/new?planId=${requestedPlanId}&date=${requestedDate}`);
+      }
+      return Astro.redirect("/?message=no_active_session");
+    }
+
+    // Fetch full session details
+    const sessionId = listData.sessions[0].id;
+    const sessionResponse = await fetch(new URL(`/api/sessions/${sessionId}`, Astro.url.origin));
+
+    if (!sessionResponse.ok) {
+      errorMessage = "Nie udało się pobrać szczegółów sesji.";
+    } else {
+      activeSession = await sessionResponse.json();
+    }
+  }
+} catch (error) {
+  console.error("Session conflict check error:", error);
+  errorMessage = "Wystąpił błąd podczas sprawdzania aktywnej sesji.";
+}
+
+// Format date for display
+function formatDate(dateString: string): string {
+  const date = new Date(dateString);
+  return new Intl.DateTimeFormat("pl-PL", {
+    weekday: "long",
+    year: "numeric",
+    month: "long",
+    day: "numeric",
+  }).format(date);
+}
+---
+
+<Layout title="GymPlanner - Konflikt sesji">
+  <div class="container mx-auto px-4 py-8">
+    <div class="max-w-2xl mx-auto">
+      {errorMessage ? (
+        <div class="bg-destructive/10 border border-destructive rounded-lg p-6 text-center">
+          <h1 class="text-xl font-semibold text-destructive mb-2">Wystąpił błąd</h1>
+          <p class="text-muted-foreground mb-4">{errorMessage}</p>
+          <a
+            href="/"
+            class="inline-flex items-center justify-center rounded-md text-sm font-medium bg-primary text-primary-foreground h-10 px-4 py-2 hover:bg-primary/90"
+          >
+            Wróć do pulpitu
+          </a>
+        </div>
+      ) : activeSession ? (
+        <div class="space-y-6">
+          {/* Header */}
+          <div class="text-center space-y-2">
+            <h1 class="text-2xl sm:text-3xl font-bold">Trening już w toku</h1>
+            <p class="text-muted-foreground">
+              Masz rozpoczęty trening. Co chcesz zrobić?
+            </p>
+          </div>
+
+          {/* Active Session Info Card */}
+          <div class="bg-card border rounded-lg p-6 space-y-4">
+            <div class="space-y-2">
+              <h2 class="text-lg font-semibold">Aktywny trening:</h2>
+              <div class="space-y-1">
+                <p class="text-sm text-muted-foreground">Plan: <span class="font-medium text-foreground">{activeSession.session.plan_name}</span></p>
+                <p class="text-sm text-muted-foreground">Dzień: <span class="font-medium text-foreground">{activeSession.session.day_name}</span></p>
+                <p class="text-sm text-muted-foreground">Data: <span class="font-medium text-foreground">{formatDate(activeSession.session.date)}</span></p>
+              </div>
+            </div>
+
+            {/* Progress */}
+            {(() => {
+              let completedSets = 0;
+              let totalSets = 0;
+              for (const exercise of activeSession.session.exercises) {
+                for (const set of exercise.sets) {
+                  totalSets++;
+                  if (set.completed) {
+                    completedSets++;
+                  }
+                }
+              }
+              const percent = totalSets > 0 ? Math.round((completedSets / totalSets) * 100) : 0;
+              
+              return (
+                <div class="space-y-2">
+                  <div class="flex items-center justify-between text-sm">
+                    <span class="text-muted-foreground">Postęp</span>
+                    <span class="font-medium">{completedSets}/{totalSets} serii ({percent}%)</span>
+                  </div>
+                  <div class="w-full bg-muted rounded-full h-2">
+                    <div 
+                      class="bg-primary h-2 rounded-full transition-all"
+                      style={`width: ${percent}%`}
+                    />
+                  </div>
+                </div>
+              );
+            })()}
+          </div>
+
+          {/* Action Buttons */}
+          <div class="space-y-3">
+            {/* Continue existing session */}
+            <a
+              href="/session/active"
+              class="w-full inline-flex items-center justify-center rounded-md text-sm font-medium bg-primary text-primary-foreground h-11 px-8 hover:bg-primary/90 transition-colors"
+            >
+              Kontynuuj ten trening
+            </a>
+
+            {/* Cancel and start new */}
+            {requestedPlanId && requestedDate && (
+              <form method="post" action="#" id="cancel-form" class="w-full">
+                <button
+                  type="submit"
+                  class="w-full inline-flex items-center justify-center rounded-md text-sm font-medium border border-input bg-background hover:bg-accent hover:text-accent-foreground h-11 px-8 transition-colors"
+                >
+                  Anuluj i rozpocznij nowy trening
+                </button>
+              </form>
+            )}
+
+            {/* Go back to dashboard */}
+            <a
+              href="/"
+              class="w-full inline-flex items-center justify-center rounded-md text-sm font-medium text-muted-foreground hover:text-foreground h-11 px-8 transition-colors"
+            >
+              Wróć do pulpitu
+            </a>
+          </div>
+
+          {/* Warning note */}
+          <div class="bg-orange-500/10 border border-orange-500/20 rounded-lg p-4">
+            <p class="text-sm text-orange-700 dark:text-orange-300">
+              <strong>Uwaga:</strong> Anulowanie treningu spowoduje utratę całego postępu z bieżącej sesji.
+            </p>
+          </div>
+        </div>
+      ) : (
+        <div class="text-center">
+          <p class="text-muted-foreground">Ładowanie...</p>
+        </div>
+      )}
+    </div>
+  </div>
+
+  <script define:vars={{ requestedPlanId, requestedDate }}>
+    const form = document.getElementById('cancel-form');
+    if (form) {
+      form.addEventListener('submit', async (e) => {
+        e.preventDefault();
+        
+        const confirmed = confirm('Czy na pewno chcesz anulować aktywny trening? Cały postęp zostanie utracony.');
+        if (!confirmed) {
+          return;
+        }
+
+        try {
+          // Cancel the active session
+          const response = await fetch('/api/sessions/cancel-active', {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+            },
+          });
+
+          if (!response.ok) {
+            throw new Error('Failed to cancel session');
+          }
+
+          // Redirect to start the new session
+          if (requestedPlanId && requestedDate) {
+            window.location.href = `/sessions/new?planId=${requestedPlanId}&date=${requestedDate}`;
+          } else {
+            window.location.href = '/';
+          }
+        } catch (error) {
+          console.error('Error cancelling session:', error);
+          alert('Nie udało się anulować sesji. Spróbuj ponownie.');
+        }
+      });
+    }
+  </script>
+</Layout>
+

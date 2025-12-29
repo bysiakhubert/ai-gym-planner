@@ -692,4 +692,63 @@ export const sessionService = {
     
     return planData.schedule?.[date]?.done === true;
   },
+
+  /**
+   * Closes all active sessions for a given plan
+   * Used when a plan is archived to clean up any in-progress sessions
+   *
+   * @param supabase - Supabase client instance
+   * @param userId - ID of the user
+   * @param planId - ID of the plan
+   * @returns Number of sessions closed
+   * @throws {Error} If database operation fails
+   */
+  closeSessionsForPlan: async (
+    supabase: SupabaseClient,
+    userId: string,
+    planId: string
+  ): Promise<number> => {
+    // Find all active sessions for this plan
+    const { data: activeSessions, error: fetchError } = await supabase
+      .from("training_sessions")
+      .select("id")
+      .eq("user_id", userId)
+      .eq("plan_id", planId)
+      .is("ended_at", null);
+
+    if (fetchError) {
+      throw new Error(`Failed to fetch active sessions: ${fetchError.message}`);
+    }
+
+    if (!activeSessions || activeSessions.length === 0) {
+      return 0;
+    }
+
+    // Close all active sessions
+    const now = new Date().toISOString();
+    const sessionIds = activeSessions.map((s) => s.id);
+
+    const { error: updateError } = await supabase
+      .from("training_sessions")
+      .update({ ended_at: now })
+      .in("id", sessionIds);
+
+    if (updateError) {
+      throw new Error(`Failed to close sessions: ${updateError.message}`);
+    }
+
+    // Log audit events for each closed session
+    for (const sessionId of sessionIds) {
+      await auditLogService.logEvent(supabase, userId, "session_auto_closed", {
+        entityType: "session",
+        entityId: sessionId,
+        payload: {
+          reason: "plan_archived",
+          plan_id: planId,
+        },
+      });
+    }
+
+    return activeSessions.length;
+  },
 };

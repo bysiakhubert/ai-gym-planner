@@ -22,6 +22,7 @@ import { Badge } from "@/components/ui/badge";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Form, FormControl, FormDescription, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
 
+import { toast } from "sonner";
 import { generateNextCycle, createPlan } from "@/lib/api/plans";
 import type { PlanResponse, GenerateNextCycleResponse, ApiError, CreatePlanRequest, UserPreferences } from "@/types";
 
@@ -89,11 +90,13 @@ function GeneratingState() {
 function PreviewState({
   previewData,
   isSaving,
+  error,
   onAccept,
   onBack,
 }: {
   previewData: GenerateNextCycleResponse;
   isSaving: boolean;
+  error: ApiError | null;
   onAccept: () => void;
   onBack: () => void;
 }) {
@@ -165,6 +168,26 @@ function PreviewState({
             </ul>
           </CardContent>
         </Card>
+      )}
+
+      {/* Error Alert */}
+      {error && (
+        <Alert variant="destructive">
+          <AlertCircle className="size-4" />
+          <AlertTitle>Błąd zapisywania</AlertTitle>
+          <AlertDescription className="space-y-2">
+            <p>{error.message || "Nie udało się zapisać planu. Spróbuj ponownie."}</p>
+            {error.details && (
+              <div className="text-xs space-y-1 mt-2">
+                {Object.entries(error.details).map(([field, messages]) => (
+                  <div key={field}>
+                    <strong>{field}:</strong> {Array.isArray(messages) ? messages.join(", ") : String(messages)}
+                  </div>
+                ))}
+              </div>
+            )}
+          </AlertDescription>
+        </Alert>
       )}
 
       {/* Actions */}
@@ -278,30 +301,52 @@ export function GenerateNextCycleDialog({ plan, isOpen, onOpenChange, onPlanCrea
     if (!previewData) return;
 
     setIsSaving(true);
+    setError(null); // Clear any previous errors
 
     try {
       // Build CreatePlanRequest from preview data
+      // Check if plan has valid preferences (was created by AI) or use defaults
+      const hasValidPreferences = plan.preferences && Object.keys(plan.preferences).length > 0;
+
+      const preferences: UserPreferences = hasValidPreferences
+        ? {
+            ...(plan.preferences as UserPreferences),
+            cycle_duration_weeks: form.getValues("cycle_duration_weeks"),
+            notes: form.getValues("notes") || undefined,
+          }
+        : {
+            // Default preferences for plans that don't have them (manual plans)
+            goal: "hypertrophy",
+            system: "ppl",
+            available_days: ["monday", "wednesday", "friday"],
+            session_duration_minutes: 60,
+            cycle_duration_weeks: form.getValues("cycle_duration_weeks"),
+            notes: form.getValues("notes") || undefined,
+          };
+
       const createRequest: CreatePlanRequest = {
         name: previewData.plan.name,
         effective_from: previewData.plan.effective_from,
         effective_to: previewData.plan.effective_to,
         source: "ai",
-        preferences: {
-          ...(plan.preferences as UserPreferences),
-          cycle_duration_weeks: form.getValues("cycle_duration_weeks"),
-          notes: form.getValues("notes") || undefined,
-        },
+        prompt: null,
+        preferences,
         plan: {
           schedule: previewData.plan.schedule,
         },
       };
 
       const createdPlan = await createPlan(createRequest);
+      toast.success("Nowy plan został utworzony!");
       onPlanCreated(createdPlan.id);
       handleOpenChange(false);
     } catch (err) {
-      setError(err as ApiError);
+      const apiError = err as ApiError;
+      // eslint-disable-next-line no-console
+      console.error("Failed to save next cycle plan:", apiError);
+      setError(apiError);
       setIsSaving(false);
+      toast.error(apiError.message || "Nie udało się zapisać planu");
     }
   }, [previewData, plan.preferences, form, onPlanCreated, handleOpenChange]);
 
@@ -391,7 +436,13 @@ export function GenerateNextCycleDialog({ plan, isOpen, onOpenChange, onPlanCrea
 
         {/* Step 3: Preview */}
         {step === "preview" && previewData && (
-          <PreviewState previewData={previewData} isSaving={isSaving} onAccept={handleAccept} onBack={handleBack} />
+          <PreviewState
+            previewData={previewData}
+            isSaving={isSaving}
+            error={error}
+            onAccept={handleAccept}
+            onBack={handleBack}
+          />
         )}
       </DialogContent>
     </Dialog>

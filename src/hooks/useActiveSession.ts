@@ -76,7 +76,29 @@ export function useActiveSession(initialSession: SessionResponse | null): UseAct
   const autosaveTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   /**
-   * Load session from localStorage if available and newer
+   * Clean up old session data from localStorage on mount
+   */
+  useEffect(() => {
+    // Clean up any old session data from localStorage
+    const keysToRemove: string[] = [];
+    
+    for (let i = 0; i < localStorage.length; i++) {
+      const key = localStorage.key(i);
+      if (key && key.startsWith(STORAGE_KEY_PREFIX)) {
+        // Keep only the current session's data
+        if (sessionId && key === `${STORAGE_KEY_PREFIX}${sessionId}`) {
+          continue;
+        }
+        keysToRemove.push(key);
+      }
+    }
+
+    // Remove old session data
+    keysToRemove.forEach((key) => localStorage.removeItem(key));
+  }, []); // Run only once on mount
+
+  /**
+   * Load session from localStorage if available, valid, and newer
    */
   useEffect(() => {
     if (!sessionId || !initialSession) return;
@@ -89,6 +111,19 @@ export function useActiveSession(initialSession: SessionResponse | null): UseAct
         const parsed = JSON.parse(storedData);
         const storedTimestamp = parsed.timestamp;
         const serverTimestamp = new Date(initialSession.created_at).getTime();
+
+        // Validate that localStorage data matches this session
+        const isValidSession =
+          parsed.session &&
+          parsed.session.plan_name === initialSession.session.plan_name &&
+          parsed.session.day_name === initialSession.session.day_name &&
+          parsed.session.date === initialSession.session.date;
+
+        if (!isValidSession) {
+          // Data doesn't match this session - remove stale data
+          localStorage.removeItem(storageKey);
+          return;
+        }
 
         // Use localStorage data if it's newer than server data
         if (storedTimestamp > serverTimestamp) {

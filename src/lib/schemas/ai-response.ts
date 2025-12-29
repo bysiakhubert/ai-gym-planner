@@ -47,6 +47,20 @@ export const aiPlanSchema = z.object({
 export type AiPlanResponse = z.infer<typeof aiPlanSchema>;
 
 /**
+ * Schema for next cycle generation (without cycle_duration_weeks since we provide it)
+ */
+export const aiNextCycleSchema = z.object({
+  name: z.string().min(1).max(100).describe("Name of the next training cycle"),
+  description: z.string().min(1).max(500).describe("Brief description of progression strategy"),
+  schedule: z.array(aiWorkoutDaySchema).min(1).describe("List of workout days for the next cycle"),
+});
+
+/**
+ * TypeScript type for next cycle response
+ */
+export type AiNextCycleResponse = z.infer<typeof aiNextCycleSchema>;
+
+/**
  * TypeScript types for individual components
  */
 export type AiSet = z.infer<typeof aiSetSchema>;

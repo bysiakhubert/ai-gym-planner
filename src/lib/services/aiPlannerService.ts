@@ -7,8 +7,8 @@ import type {
 } from "src/types";
 import type { CompletedSessionData } from "./sessionService";
 import { openRouterService } from "./openRouterService";
-import { aiPlanSchema, type AiPlanResponse } from "../schemas/ai-response";
-import { SYSTEM_MESSAGE, formatUserPrompt, sanitizeUserInput } from "./aiPrompts";
+import { aiPlanSchema, aiNextCycleSchema, type AiPlanResponse, type AiNextCycleResponse } from "../schemas/ai-response";
+import { SYSTEM_MESSAGE, formatUserPrompt, formatNextCyclePrompt, sanitizeUserInput } from "./aiPrompts";
 
 export class AiPlannerService {
   /**
@@ -26,9 +26,24 @@ export class AiPlannerService {
       notes: preferences.notes ? sanitizeUserInput(preferences.notes) : undefined,
     };
 
+    console.log("\n=== GENEROWANIE NOWEGO PLANU - DEBUG ===");
+    console.log("Oryginalne uwagi użytkownika:", preferences.notes || "(brak)");
+    console.log("Uwagi po sanityzacji:", sanitizedPreferences.notes || "(brak)");
+    console.log("Cel treningowy:", preferences.goal);
+    console.log("System treningowy:", preferences.system);
+    console.log("Liczba dni:", preferences.available_days.length);
+    console.log("Czas treningu:", preferences.session_duration_minutes, "minut");
+    console.log("Długość cyklu:", preferences.cycle_duration_weeks, "tygodni");
+
     // Build AI prompts
     const systemPrompt = SYSTEM_MESSAGE;
     const userPrompt = formatUserPrompt(sanitizedPreferences);
+
+    console.log("\n--- SYSTEM PROMPT ---");
+    console.log(systemPrompt);
+    console.log("\n--- USER PROMPT ---");
+    console.log(userPrompt);
+    console.log("\n=== KONIEC DEBUG ===\n");
 
     // Call OpenRouter API with structured output and fallback support
     const completionResult = await openRouterService.generateStructuredCompletion<AiPlanResponse>(
@@ -77,7 +92,7 @@ export class AiPlannerService {
   /**
    * Generates a preview for the next training cycle based on performance history
    *
-   * Analyzes completed sessions from the current plan and suggests progressions
+   * Uses AI to analyze completed sessions from the current plan and suggest smart progressions
    * (increased weights, volume adjustments, exercise variations).
    *
    * @param currentPlan - The current plan to base progression on
@@ -95,43 +110,91 @@ export class AiPlannerService {
   ): Promise<GenerateNextCycleResponse> {
     const startTime = Date.now();
 
-    // For now, use traditional progression logic
-    // TODO: In future, could use AI to analyze session history and suggest smart progressions
+    // Sanitize user notes to prevent prompt injection
+    const sanitizedNotes = notes ? sanitizeUserInput(notes) : undefined;
 
-    // Calculate new cycle dates
-    const startDate = new Date();
-    const endDate = new Date();
+    console.log("\n=== GENEROWANIE KOLEJNEGO CYKLU - DEBUG ===");
+    console.log("Oryginalne uwagi użytkownika:", notes || "(brak)");
+    console.log("Uwagi po sanityzacji:", sanitizedNotes || "(brak)");
+    console.log("Plan bazowy:", currentPlan.name);
+    console.log("Długość nowego cyklu:", cycleDurationWeeks, "tygodni");
+    console.log("Liczba sesji w historii:", sessionHistory.length);
+
+    // Calculate new cycle dates - start after the current plan ends
+    const currentPlanEndDate = new Date(currentPlan.effective_to);
+    const startDate = new Date(currentPlanEndDate);
+    startDate.setDate(currentPlanEndDate.getDate() + 1); // Start the day after current plan ends
+
+    const endDate = new Date(startDate);
     endDate.setDate(startDate.getDate() + cycleDurationWeeks * 7);
 
-    // Analyze session history for progression
-    const progressionChanges = this.analyzeProgressionChanges(sessionHistory, notes);
+    // Build AI prompts
+    const systemPrompt = SYSTEM_MESSAGE;
+    const userPrompt = formatNextCyclePrompt(
+      { name: currentPlan.name, schedule: currentPlan.plan.schedule },
+      currentPlan.preferences,
+      sessionHistory,
+      cycleDurationWeeks,
+      sanitizedNotes
+    );
 
-    // Generate new schedule with progressions applied
-    const newSchedule = this.generateProgressedSchedule(currentPlan.plan.schedule, sessionHistory, cycleDurationWeeks);
+    console.log("\n--- SYSTEM PROMPT ---");
+    console.log(systemPrompt);
+    console.log("\n--- USER PROMPT ---");
+    console.log(userPrompt);
+    console.log("\n=== KONIEC DEBUG ===\n");
 
-    // Build the new plan name
-    const currentPreferences = currentPlan.preferences as UserPreferences;
-    const planName = currentPreferences?.system
-      ? `${cycleDurationWeeks}-Week ${currentPreferences.system} ${currentPreferences.goal || "Training"} Program (Cycle 2)`
-      : `${currentPlan.name} - Next Cycle`;
+    // Call OpenRouter API with structured output and fallback support
+    const completionResult = await openRouterService.generateStructuredCompletion<AiNextCycleResponse>(
+      [
+        { role: "system", content: systemPrompt },
+        { role: "user", content: userPrompt },
+      ],
+      aiNextCycleSchema
+    );
+
+    const aiResponse = completionResult.data;
+    const modelUsed = completionResult.model;
+    const fallbackUsed = completionResult.fallbackUsed;
+
+    // Map AI response to domain format (PlanStructure)
+    const schedule = this.mapAiResponseToSchedule({ ...aiResponse, cycle_duration_weeks: cycleDurationWeeks }, {
+      cycle_duration_weeks: cycleDurationWeeks,
+    } as UserPreferences);
+
+    // Analyze progression changes for summary
+    const progressionChanges = this.analyzeAiProgressionChanges(
+      currentPlan.plan.schedule,
+      schedule,
+      aiResponse.description
+    );
 
     const generationTimeMs = Date.now() - startTime;
 
-    return {
+    // Build response
+    const response: GenerateNextCycleResponse = {
       plan: {
-        name: planName,
+        name: aiResponse.name,
         effective_from: startDate.toISOString(),
         effective_to: endDate.toISOString(),
-        schedule: newSchedule,
+        schedule,
       },
       progression_summary: {
         changes: progressionChanges,
       },
       metadata: {
-        model: "traditional-progression",
+        model: modelUsed,
         generation_time_ms: generationTimeMs,
       },
     };
+
+    // Log if fallback was used
+    if (fallbackUsed) {
+      // eslint-disable-next-line no-console
+      console.info(`AI generation fallback used: ${modelUsed} (primary model failed)`);
+    }
+
+    return response;
   }
 
   /**
@@ -185,7 +248,95 @@ export class AiPlannerService {
   }
 
   /**
-   * Analyzes session history to determine progression changes
+   * Analyzes AI-generated progression changes by comparing old and new schedules
+   * @private
+   */
+  private analyzeAiProgressionChanges(
+    oldSchedule: PlanStructure["schedule"],
+    newSchedule: PlanStructure["schedule"],
+    aiDescription: string
+  ): string[] {
+    const changes: string[] = [];
+
+    // Add AI's description as first change summary
+    if (aiDescription) {
+      changes.push(aiDescription);
+    }
+
+    // Get unique workout days from both schedules
+    const oldDays = new Map<
+      string,
+      { name: string; exercises: { name: string; sets: { reps: number; weight?: number }[] }[] }
+    >();
+    const newDays = new Map<
+      string,
+      { name: string; exercises: { name: string; sets: { reps: number; weight?: number }[] }[] }
+    >();
+
+    for (const day of Object.values(oldSchedule)) {
+      if (!oldDays.has(day.name)) {
+        oldDays.set(day.name, day);
+      }
+    }
+
+    for (const day of Object.values(newSchedule)) {
+      if (!newDays.has(day.name)) {
+        newDays.set(day.name, day);
+      }
+    }
+
+    // Compare exercises between old and new
+    for (const [dayName, oldDay] of oldDays) {
+      const newDay = newDays.get(dayName);
+      if (!newDay) continue;
+
+      for (const oldExercise of oldDay.exercises) {
+        const newExercise = newDay.exercises.find((e) => e.name === oldExercise.name);
+
+        if (newExercise) {
+          // Compare weights
+          const oldAvgWeight = oldExercise.sets.reduce((sum, s) => sum + (s.weight || 0), 0) / oldExercise.sets.length;
+          const newAvgWeight = newExercise.sets.reduce((sum, s) => sum + (s.weight || 0), 0) / newExercise.sets.length;
+
+          if (newAvgWeight > oldAvgWeight && oldAvgWeight > 0) {
+            const increase = Math.round(((newAvgWeight - oldAvgWeight) / oldAvgWeight) * 100);
+            changes.push(
+              `${oldExercise.name}: zwiększono ciężar o ${increase}% (${Math.round(oldAvgWeight)}kg → ${Math.round(newAvgWeight)}kg)`
+            );
+          }
+
+          // Compare volume (sets × reps)
+          const oldVolume = oldExercise.sets.reduce((sum, s) => sum + s.reps, 0);
+          const newVolume = newExercise.sets.reduce((sum, s) => sum + s.reps, 0);
+
+          if (newVolume > oldVolume) {
+            changes.push(`${oldExercise.name}: zwiększono objętość (${oldVolume} → ${newVolume} powtórzeń)`);
+          }
+        }
+      }
+
+      // Check for new exercises
+      for (const newExercise of newDay.exercises) {
+        const isNew = !oldDay.exercises.some((e) => e.name === newExercise.name);
+        if (isNew) {
+          changes.push(`Dodano nowe ćwiczenie: ${newExercise.name} (${dayName})`);
+        }
+      }
+    }
+
+    // If no specific changes found, provide general message
+    if (changes.length === 1 && aiDescription) {
+      // Only AI description
+      changes.push("Plan został dostosowany z uwzględnieniem progresji i dotychczasowych wyników");
+    } else if (changes.length === 0) {
+      changes.push("Zachowano strukturę planu z drobnymi optymalizacjami");
+    }
+
+    return changes;
+  }
+
+  /**
+   * Analyzes session history to determine progression changes (legacy method for non-AI)
    * @private
    */
   private analyzeProgressionChanges(sessionHistory: CompletedSessionData[], notes?: string): string[] {
@@ -244,10 +395,10 @@ export class AiPlannerService {
   private generateProgressedSchedule(
     currentSchedule: PlanStructure["schedule"],
     sessionHistory: CompletedSessionData[],
-    cycleDurationWeeks: number
+    cycleDurationWeeks: number,
+    startDate: Date
   ): PlanStructure["schedule"] {
     const newSchedule: PlanStructure["schedule"] = {};
-    const startDate = new Date();
 
     // Get unique workout days from current schedule
     const workoutDays = Object.values(currentSchedule);
