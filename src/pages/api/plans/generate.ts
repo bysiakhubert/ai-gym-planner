@@ -2,6 +2,12 @@ import type { APIRoute } from "astro";
 import { UserPreferencesSchema } from "src/lib/schemas/plans";
 import { auditLogService } from "src/lib/services/auditLogService";
 import { AiPlannerService } from "src/lib/services/aiPlannerService";
+import {
+  OpenRouterConfigurationError,
+  OpenRouterNetworkError,
+  OpenRouterAPIError,
+  OpenRouterParseError,
+} from "src/lib/services/openRouterService";
 import { DEFAULT_USER_ID } from "src/db/supabase.client";
 
 export const prerender = false;
@@ -22,16 +28,35 @@ export const POST: APIRoute = async ({ request, locals }) => {
   const recentTimestamps = userTimestamps.filter((timestamp) => now - timestamp < RATE_LIMIT_WINDOW_MS);
 
   if (recentTimestamps.length >= RATE_LIMIT_MAX_REQUESTS) {
-    return new Response(JSON.stringify({ error: "Too Many Requests" }), { status: 429 });
+    return new Response(
+      JSON.stringify({
+        error: "RateLimitExceeded",
+        message: "Too many AI generation requests. Please try again later.",
+      }),
+      {
+        status: 429,
+        headers: { "Content-Type": "application/json" },
+      }
+    );
   }
 
   requestTimestamps.set(userId, [...recentTimestamps, now]);
 
+  // Parse and validate request body
   let requestBody;
   try {
     requestBody = await request.json();
   } catch {
-    return new Response(JSON.stringify({ error: "Invalid JSON body" }), { status: 400 });
+    return new Response(
+      JSON.stringify({
+        error: "ValidationError",
+        message: "Invalid JSON body",
+      }),
+      {
+        status: 400,
+        headers: { "Content-Type": "application/json" },
+      }
+    );
   }
 
   const validationResult = UserPreferencesSchema.safeParse(requestBody.preferences);
@@ -39,38 +64,161 @@ export const POST: APIRoute = async ({ request, locals }) => {
   if (!validationResult.success) {
     return new Response(
       JSON.stringify({
-        error: "Validation failed",
+        error: "ValidationError",
+        message: "Invalid user preferences",
         details: validationResult.error.flatten(),
       }),
-      { status: 400 }
+      {
+        status: 400,
+        headers: { "Content-Type": "application/json" },
+      }
     );
   }
 
   const preferences = validationResult.data;
 
   try {
+    // Log generation request
     await auditLogService.logEvent(supabase, userId, "ai_generation_requested", {
       payload: { preferences },
     });
 
+    // Generate plan using AI
     const aiPlannerService = new AiPlannerService();
     const planPreview = await aiPlannerService.generatePlanPreview(preferences);
 
+    // Log successful generation
     await auditLogService.logEvent(supabase, userId, "ai_generation_completed", {
       payload: {
         model: planPreview.metadata.model,
+        generation_time_ms: planPreview.metadata.generation_time_ms,
       },
     });
 
-    return new Response(JSON.stringify(planPreview), { status: 200 });
+    return new Response(JSON.stringify(planPreview), {
+      status: 200,
+      headers: { "Content-Type": "application/json" },
+    });
   } catch (error) {
+    // Handle OpenRouter-specific errors with appropriate HTTP status codes
+    if (error instanceof OpenRouterConfigurationError) {
+      // Configuration error - 500 Internal Server Error
+      // eslint-disable-next-line no-console
+      console.error("OpenRouter configuration error:", error);
+      await auditLogService.logEvent(supabase, userId, "ai_generation_failed", {
+        payload: {
+          error_type: "configuration",
+          error: error.message,
+        },
+      });
+
+      return new Response(
+        JSON.stringify({
+          error: "ServiceConfigurationError",
+          message: "AI service is not properly configured. Please contact support.",
+        }),
+        {
+          status: 500,
+          headers: { "Content-Type": "application/json" },
+        }
+      );
+    }
+
+    if (error instanceof OpenRouterNetworkError) {
+      // Network error - 503 Service Unavailable
+      // eslint-disable-next-line no-console
+      console.error("OpenRouter network error:", error);
+      await auditLogService.logEvent(supabase, userId, "ai_generation_failed", {
+        payload: {
+          error_type: "network",
+          error: error.message,
+        },
+      });
+
+      return new Response(
+        JSON.stringify({
+          error: "ServiceUnavailable",
+          message: "AI service is temporarily unavailable. Please try again later.",
+        }),
+        {
+          status: 503,
+          headers: { "Content-Type": "application/json" },
+        }
+      );
+    }
+
+    if (error instanceof OpenRouterAPIError) {
+      // API error - map status code appropriately
+      // eslint-disable-next-line no-console
+      console.error("OpenRouter API error:", error);
+      await auditLogService.logEvent(supabase, userId, "ai_generation_failed", {
+        payload: {
+          error_type: "api",
+          status_code: error.statusCode,
+          error: error.message,
+        },
+      });
+
+      // Determine appropriate response based on API error status
+      const isClientError = error.statusCode >= 400 && error.statusCode < 500;
+      const statusCode = isClientError ? 400 : 503;
+
+      return new Response(
+        JSON.stringify({
+          error: "AIGenerationFailed",
+          message: isClientError
+            ? "Invalid request to AI service. Please check your input and try again."
+            : "AI service encountered an error. Please try again later.",
+        }),
+        {
+          status: statusCode,
+          headers: { "Content-Type": "application/json" },
+        }
+      );
+    }
+
+    if (error instanceof OpenRouterParseError) {
+      // Parse error - 500 Internal Server Error (AI returned invalid data)
+      // eslint-disable-next-line no-console
+      console.error("OpenRouter parse error:", error);
+      await auditLogService.logEvent(supabase, userId, "ai_generation_failed", {
+        payload: {
+          error_type: "parse",
+          error: error.message,
+        },
+      });
+
+      return new Response(
+        JSON.stringify({
+          error: "AIGenerationFailed",
+          message: "AI service returned invalid data. Please try again.",
+        }),
+        {
+          status: 500,
+          headers: { "Content-Type": "application/json" },
+        }
+      );
+    }
+
+    // Unknown error - 500 Internal Server Error
     // eslint-disable-next-line no-console
-    console.error("AI plan generation failed:", error);
+    console.error("Unexpected error during AI plan generation:", error);
     await auditLogService.logEvent(supabase, userId, "ai_generation_failed", {
       payload: {
+        error_type: "unknown",
         error: error instanceof Error ? error.message : "Unknown error",
       },
     });
-    return new Response(JSON.stringify({ error: "Internal Server Error" }), { status: 500 });
+
+    return new Response(
+      JSON.stringify({
+        error: "InternalServerError",
+        message: "An unexpected error occurred. Please try again later.",
+      }),
+      {
+        status: 500,
+        headers: { "Content-Type": "application/json" },
+      }
+    );
   }
 };

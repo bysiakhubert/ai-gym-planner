@@ -1,5 +1,4 @@
 import type {
-  CreatePlanRequest,
   GeneratePlanResponse,
   GenerateNextCycleResponse,
   PlanStructure,
@@ -7,104 +6,63 @@ import type {
   UserPreferences,
 } from "src/types";
 import type { CompletedSessionData } from "./sessionService";
+import { openRouterService } from "./openRouterService";
+import { aiPlanSchema, type AiPlanResponse } from "../schemas/ai-response";
+import { SYSTEM_MESSAGE, formatUserPrompt, sanitizeUserInput } from "./aiPrompts";
 
 export class AiPlannerService {
+  /**
+   * Generates an AI-powered workout plan preview based on user preferences
+   * @param preferences - User workout preferences
+   * @returns Generated plan with metadata
+   * @throws {OpenRouterError} If AI generation fails
+   */
   async generatePlanPreview(preferences: UserPreferences): Promise<GeneratePlanResponse> {
-    // Simulate AI generation delay
-    await new Promise((resolve) => setTimeout(resolve, 1500));
+    const startTime = Date.now();
 
+    // Sanitize user notes to prevent prompt injection
+    const sanitizedPreferences = {
+      ...preferences,
+      notes: preferences.notes ? sanitizeUserInput(preferences.notes) : undefined,
+    };
+
+    // Build AI prompts
+    const systemPrompt = SYSTEM_MESSAGE;
+    const userPrompt = formatUserPrompt(sanitizedPreferences);
+
+    // Call OpenRouter API with structured output
+    const aiResponse = await openRouterService.generateStructuredCompletion(
+      [
+        { role: "system", content: systemPrompt },
+        { role: "user", content: userPrompt },
+      ],
+      aiPlanSchema
+    );
+
+    // Map AI response to domain format (PlanStructure)
+    const schedule = this.mapAiResponseToSchedule(aiResponse, preferences);
+
+    // Calculate plan dates
     const startDate = new Date();
     const endDate = new Date();
     endDate.setDate(startDate.getDate() + preferences.cycle_duration_weeks * 7);
 
-    const schedule: PlanStructure["schedule"] = {
-      "2025-12-10": {
-        name: "Push Day",
-        done: false,
-        exercises: [
-          {
-            name: "Bench Press",
-            sets: [
-              { reps: 8, weight: 80, rest_seconds: 90 },
-              { reps: 8, weight: 80, rest_seconds: 90 },
-              { reps: 8, weight: 80, rest_seconds: 90 },
-            ],
-          },
-          {
-            name: "Overhead Press",
-            sets: [
-              { reps: 10, weight: 50, rest_seconds: 60 },
-              { reps: 10, weight: 50, rest_seconds: 60 },
-              { reps: 10, weight: 50, rest_seconds: 60 },
-            ],
-          },
-        ],
-      },
-      "2025-12-12": {
-        name: "Pull Day",
-        done: false,
-        exercises: [
-          {
-            name: "Pull Ups",
-            sets: [
-              { reps: 8, rest_seconds: 90 },
-              { reps: 8, rest_seconds: 90 },
-              { reps: 8, rest_seconds: 90 },
-            ],
-          },
-          {
-            name: "Barbell Rows",
-            sets: [
-              { reps: 10, weight: 70, rest_seconds: 60 },
-              { reps: 10, weight: 70, rest_seconds: 60 },
-              { reps: 10, weight: 70, rest_seconds: 60 },
-            ],
-          },
-        ],
-      },
-      "2025-12-14": {
-        name: "Leg Day",
-        done: false,
-        exercises: [
-          {
-            name: "Squats",
-            sets: [
-              { reps: 8, weight: 100, rest_seconds: 120 },
-              { reps: 8, weight: 100, rest_seconds: 120 },
-              { reps: 8, weight: 100, rest_seconds: 120 },
-            ],
-          },
-          {
-            name: "Deadlifts",
-            sets: [{ reps: 5, weight: 120, rest_seconds: 180 }],
-          },
-        ],
-      },
-    };
+    const generationTimeMs = Date.now() - startTime;
 
-    const planData: Omit<CreatePlanRequest, "preferences"> & { schedule: PlanStructure["schedule"] } = {
-      name: `${preferences.cycle_duration_weeks}-Week ${preferences.system} ${preferences.goal} Program`,
-      effective_from: startDate.toISOString(),
-      effective_to: endDate.toISOString(),
-      source: "ai",
-      plan: { schedule },
-      schedule, // This seems redundant, but it's what the type is asking for
-    };
-
-    // Correctly structure the final response
+    // Build response
     const response: GeneratePlanResponse = {
       plan: {
-        name: planData.name,
-        effective_from: planData.effective_from,
-        effective_to: planData.effective_to,
-        source: planData.source,
-        plan: planData.plan,
-        schedule: planData.schedule,
+        name: aiResponse.name,
+        effective_from: startDate.toISOString(),
+        effective_to: endDate.toISOString(),
+        source: "ai",
+        plan: { schedule },
+        schedule,
       },
       preferences,
       metadata: {
-        model: "mock/gpt-4-turbo",
-        generation_time_ms: 1450,
+        model: "google/gemini-2.0-flash-exp:free",
+        generation_time_ms: generationTimeMs,
       },
     };
 
@@ -122,6 +80,7 @@ export class AiPlannerService {
    * @param cycleDurationWeeks - Duration of the new cycle in weeks
    * @param notes - Optional specific focus areas or instructions
    * @returns Generated plan preview with progression summary
+   * @throws {OpenRouterError} If AI generation fails
    */
   async generateNextCycle(
     currentPlan: PlanResponse,
@@ -131,8 +90,8 @@ export class AiPlannerService {
   ): Promise<GenerateNextCycleResponse> {
     const startTime = Date.now();
 
-    // Simulate AI generation delay
-    await new Promise((resolve) => setTimeout(resolve, 1500));
+    // For now, use traditional progression logic
+    // TODO: In future, could use AI to analyze session history and suggest smart progressions
 
     // Calculate new cycle dates
     const startDate = new Date();
@@ -164,10 +123,60 @@ export class AiPlannerService {
         changes: progressionChanges,
       },
       metadata: {
-        model: "mock/gpt-4-turbo",
+        model: "traditional-progression",
         generation_time_ms: generationTimeMs,
       },
     };
+  }
+
+  /**
+   * Maps AI response structure to application's schedule format
+   * Distributes workout days across the specified cycle duration
+   * @private
+   */
+  private mapAiResponseToSchedule(aiResponse: AiPlanResponse, preferences: UserPreferences): PlanStructure["schedule"] {
+    const schedule: PlanStructure["schedule"] = {};
+    const startDate = new Date();
+    const { cycle_duration_weeks } = preferences;
+
+    // Calculate total days in cycle
+    const totalDays = cycle_duration_weeks * 7;
+    const workoutDays = aiResponse.schedule;
+    const daysPerWeek = workoutDays.length;
+
+    // Distribute workouts evenly across the cycle
+    let currentDay = 0;
+    const daysBetweenWorkouts = Math.floor(7 / daysPerWeek);
+
+    for (let week = 0; week < cycle_duration_weeks; week++) {
+      for (let workoutIndex = 0; workoutIndex < daysPerWeek; workoutIndex++) {
+        const workoutDate = new Date(startDate);
+        workoutDate.setDate(startDate.getDate() + currentDay);
+
+        const dateKey = workoutDate.toISOString().split("T")[0];
+        const aiWorkout = workoutDays[workoutIndex];
+
+        // Map AI workout to application format
+        schedule[dateKey] = {
+          name: aiWorkout.name,
+          done: false,
+          exercises: aiWorkout.exercises.map((exercise) => ({
+            name: exercise.name,
+            sets: exercise.sets.map((set) => ({
+              reps: set.reps,
+              weight: set.weight,
+              rest_seconds: set.rest_seconds,
+            })),
+          })),
+        };
+
+        currentDay += daysBetweenWorkouts;
+        if (currentDay >= totalDays) break;
+      }
+      if (currentDay >= totalDays) break;
+    }
+
+    return schedule;
   }
 
   /**
