@@ -4,12 +4,12 @@ import { z } from "zod";
  * Zod schema for user preferences used in AI plan generation
  */
 export const UserPreferencesSchema = z.object({
-  goal: z.string().min(1, "Goal is required"),
-  system: z.string().min(1, "System is required"),
-  available_days: z.array(z.string().min(1)).min(1, "At least one available day is required"),
-  session_duration_minutes: z.number().positive("Session duration must be a positive number"),
-  cycle_duration_weeks: z.number().positive("Cycle duration must be a positive number"),
-  notes: z.string().max(500, "Notes must be 500 characters or less").optional(),
+  goal: z.string().min(1, "Cel treningowy jest wymagany"),
+  system: z.string().min(1, "System treningowy jest wymagany"),
+  available_days: z.array(z.string().min(1)).min(1, "Musisz wybrać przynajmniej jeden dzień treningowy"),
+  session_duration_minutes: z.number().positive("Czas trwania sesji musi być liczbą dodatnią"),
+  cycle_duration_weeks: z.number().positive("Długość cyklu musi być liczbą dodatnią"),
+  notes: z.string().max(2000, "Dodatkowe uwagi nie mogą przekraczać 2000 znaków").optional(),
 });
 
 /**

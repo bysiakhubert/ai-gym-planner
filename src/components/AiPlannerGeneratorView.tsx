@@ -48,7 +48,16 @@ export function AiPlannerGeneratorView() {
         <Alert variant="destructive">
           <AlertCircle className="h-4 w-4" />
           <AlertTitle>Wystąpił błąd</AlertTitle>
-          <AlertDescription>{error.message || "Nie udało się wygenerować planu. Spróbuj ponownie."}</AlertDescription>
+          <AlertDescription className="mt-2">
+            <div className="space-y-2">
+              <p>{error.message || "Nie udało się wygenerować planu. Spróbuj ponownie."}</p>
+              {error.error === "ValidationError" && (
+                <p className="text-sm mt-1 opacity-90">
+                  Sprawdź poprawność wszystkich pól formularza i spróbuj ponownie.
+                </p>
+              )}
+            </div>
+          </AlertDescription>
         </Alert>
         <PlannerForm isSubmitting={false} onSubmit={handleFormSubmit} />
       </div>

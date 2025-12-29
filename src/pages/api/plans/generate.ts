@@ -62,10 +62,26 @@ export const POST: APIRoute = async ({ request, locals }) => {
   const validationResult = UserPreferencesSchema.safeParse(requestBody.preferences);
 
   if (!validationResult.success) {
+    // Format validation errors into user-friendly messages
+    const fieldErrors = validationResult.error.flatten().fieldErrors;
+    const errorMessages: string[] = [];
+
+    // Extract all field error messages
+    for (const [field, messages] of Object.entries(fieldErrors)) {
+      if (messages && messages.length > 0) {
+        errorMessages.push(...messages);
+      }
+    }
+
+    // Create a user-friendly message
+    const mainMessage = errorMessages.length > 0 
+      ? errorMessages.join(". ") 
+      : "Nieprawidłowe dane formularza. Sprawdź wszystkie pola i spróbuj ponownie.";
+
     return new Response(
       JSON.stringify({
         error: "ValidationError",
-        message: "Invalid user preferences",
+        message: mainMessage,
         details: validationResult.error.flatten(),
       }),
       {

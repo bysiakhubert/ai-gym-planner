@@ -16,7 +16,7 @@ const userPreferencesSchema = z.object({
   available_days: z.array(z.string()).min(1, "Wybierz przynajmniej jeden dzień"),
   session_duration_minutes: z.number().min(30, "Minimum 30 minut").max(180, "Maksimum 180 minut"),
   cycle_duration_weeks: z.number().min(1, "Minimum 1 tydzień").max(12, "Maksimum 12 tygodni"),
-  notes: z.string().optional(),
+  notes: z.string().max(2000, "Dodatkowe uwagi nie mogą przekraczać 2000 znaków").optional(),
 });
 
 interface PlannerFormProps {
@@ -222,20 +222,32 @@ export function PlannerForm({ isSubmitting, onSubmit }: PlannerFormProps) {
           <FormField
             control={form.control}
             name="notes"
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel>Dodatkowe uwagi (opcjonalne)</FormLabel>
-                <FormControl>
-                  <Textarea
-                    placeholder="Np. kontuzje, preferowane ćwiczenia, dostępny sprzęt..."
-                    className="min-h-[100px] resize-none"
-                    {...field}
-                  />
-                </FormControl>
-                <FormDescription>Dodaj informacje, które pomogą AI dostosować plan do Twoich potrzeb</FormDescription>
-                <FormMessage />
-              </FormItem>
-            )}
+            render={({ field }) => {
+              const charCount = field.value?.length || 0;
+              const maxChars = 2000;
+              const isNearLimit = charCount > maxChars * 0.8;
+
+              return (
+                <FormItem>
+                  <FormLabel>Dodatkowe uwagi (opcjonalne)</FormLabel>
+                  <FormControl>
+                    <Textarea
+                      placeholder="Np. kontuzje, preferowane ćwiczenia, dostępny sprzęt..."
+                      className="min-h-[100px] resize-none"
+                      maxLength={maxChars}
+                      {...field}
+                    />
+                  </FormControl>
+                  <div className="flex items-center justify-between">
+                    <FormDescription>Dodaj informacje, które pomogą AI dostosować plan do Twoich potrzeb</FormDescription>
+                    <span className={`text-xs ${isNearLimit ? "text-orange-600 dark:text-orange-400" : "text-muted-foreground"}`}>
+                      {charCount}/{maxChars}
+                    </span>
+                  </div>
+                  <FormMessage />
+                </FormItem>
+              );
+            }}
           />
 
           {/* Submit Button */}
