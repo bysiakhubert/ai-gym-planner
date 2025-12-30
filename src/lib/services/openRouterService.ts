@@ -138,7 +138,7 @@ export class OpenRouterService {
    */
   constructor(config: OpenRouterConfig) {
     // Guard clause: Fail fast if API key is missing
-    if (!config.apiKey) {
+    if (config.apiKey === undefined) {
       throw new OpenRouterConfigurationError(
         "OPENROUTER_API_KEY is not set. Please configure it in your environment variables."
       );
@@ -146,7 +146,7 @@ export class OpenRouterService {
 
     // Validate API key format (basic check)
     if (typeof config.apiKey !== "string" || config.apiKey.trim().length === 0) {
-      throw new OpenRouterConfigurationError("OPENROUTER_API_KEY must be a non-empty string.");
+      throw new OpenRouterConfigurationError("OPENROUTER_API_KEY must be a non-empty string");
     }
 
     this.apiKey = config.apiKey;
@@ -270,11 +270,17 @@ export class OpenRouterService {
         }
 
         // If this is the last model, re-throw the error
+        // Check both instanceof and name property for better compatibility
+        const errorObj = error as OpenRouterError;
         if (
           error instanceof OpenRouterConfigurationError ||
           error instanceof OpenRouterNetworkError ||
           error instanceof OpenRouterAPIError ||
-          error instanceof OpenRouterParseError
+          error instanceof OpenRouterParseError ||
+          errorObj.name === "OpenRouterConfigurationError" ||
+          errorObj.name === "OpenRouterNetworkError" ||
+          errorObj.name === "OpenRouterAPIError" ||
+          errorObj.name === "OpenRouterParseError"
         ) {
           throw error;
         }
@@ -309,10 +315,10 @@ export class OpenRouterService {
       // This prevents invalid schemas where $ref has sibling keywords
       if ("$ref" in cleanSchema && "definitions" in cleanSchema) {
         const refPath = (cleanSchema as Record<string, unknown>).$ref as string;
-        const defName = refPath.split("/").pop();
+        const defName = refPath?.split("/").pop();
         const definitions = (cleanSchema as Record<string, unknown>).definitions as Record<string, unknown>;
 
-        if (defName && definitions[defName]) {
+        if (defName && definitions?.[defName]) {
           // Use the actual definition instead of the $ref wrapper
           const unwrappedSchema = { ...definitions[defName] } as Record<string, unknown>;
 
@@ -343,9 +349,10 @@ export class OpenRouterService {
 
       return cleanSchema;
     } catch (error) {
-      throw new OpenRouterConfigurationError(
-        `Failed to convert Zod schema to JSON Schema: ${(error as Error).message}`
-      );
+      // Safely extract error message
+      const errorMessage = error instanceof Error ? error.message : String(error);
+
+      throw new OpenRouterConfigurationError(`Failed to convert Zod schema to JSON Schema: ${errorMessage}`);
     }
   }
 
@@ -379,29 +386,42 @@ export class OpenRouterService {
    * @private
    */
   private parseAndValidateOutput<T>(rawContent: string, schema: z.ZodType<T>): T {
-    // Parse JSON
-    let parsedJson: unknown;
+    // Wrap everything in try-catch to ensure all errors are converted to OpenRouterParseError
     try {
-      parsedJson = JSON.parse(rawContent);
-    } catch {
-      // eslint-disable-next-line no-console
-      console.error("Failed to parse model output as JSON:", rawContent);
-      throw new OpenRouterParseError("Model output is not valid JSON", rawContent);
-    }
+      // Parse JSON
+      let parsedJson: unknown;
+      try {
+        parsedJson = JSON.parse(rawContent);
+      } catch {
+        // eslint-disable-next-line no-console
+        console.error("Failed to parse model output as JSON:", rawContent);
+        throw new OpenRouterParseError("Model output is not valid JSON", rawContent);
+      }
 
-    // Validate against Zod schema
-    try {
-      return schema.parse(parsedJson);
-    } catch (zodError) {
-      // eslint-disable-next-line no-console
-      console.error("Model output does not match expected schema:", {
-        output: parsedJson,
-        error: zodError,
-      });
-      throw new OpenRouterParseError(
-        `Model output does not match expected schema: ${(zodError as Error).message}`,
-        rawContent
-      );
+      // Validate against Zod schema
+      try {
+        return schema.parse(parsedJson);
+      } catch (zodError) {
+        // eslint-disable-next-line no-console
+        console.error("Model output does not match expected schema:", {
+          output: parsedJson,
+          error: zodError,
+        });
+
+        // Safely extract error message
+        const errorMessage = zodError instanceof Error ? zodError.message : String(zodError);
+
+        throw new OpenRouterParseError(`Model output does not match expected schema: ${errorMessage}`, rawContent);
+      }
+    } catch (error) {
+      // If error is already OpenRouterParseError, re-throw it
+      if (error instanceof OpenRouterParseError) {
+        throw error;
+      }
+
+      // Otherwise, wrap any unexpected errors as ParseError
+      const errorMessage = error instanceof Error ? error.message : String(error);
+      throw new OpenRouterParseError(errorMessage, rawContent);
     }
   }
 }
