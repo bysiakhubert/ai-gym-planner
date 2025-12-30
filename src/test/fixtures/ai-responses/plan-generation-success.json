@@ -1,0 +1,15 @@
+{
+  "choices": [
+    {
+      "message": {
+        "content": "{\"name\":\"4-tygodniowy PPL na masę\",\"description\":\"Program Push-Pull-Legs z progresywnym obciążeniem zaprojektowany na hipertrofię. Każdy cykl zwiększa intensywność.\",\"cycle_duration_weeks\":4,\"schedule\":[{\"name\":\"Push A\",\"exercises\":[{\"name\":\"wyciskanie sztangi na ławce poziomej\",\"sets\":[{\"reps\":8,\"weight\":80,\"rest_seconds\":150,\"rir\":2},{\"reps\":8,\"weight\":80,\"rest_seconds\":150,\"rir\":2},{\"reps\":8,\"weight\":80,\"rest_seconds\":150,\"rir\":2}],\"notes\":\"Łokcie 45 stopni, pełen zakres ruchu\"},{\"name\":\"wyciskanie hantli na ławce skośnej\",\"sets\":[{\"reps\":10,\"weight\":30,\"rest_seconds\":120,\"rir\":2},{\"reps\":10,\"weight\":30,\"rest_seconds\":120,\"rir\":2},{\"reps\":10,\"weight\":30,\"rest_seconds\":120,\"rir\":2}],\"notes\":\"Kontrolowane opuszczanie\"}]},{\"name\":\"Pull A\",\"exercises\":[{\"name\":\"podciąganie na drążku\",\"sets\":[{\"reps\":8,\"rest_seconds\":180,\"rir\":1},{\"reps\":8,\"rest_seconds\":180,\"rir\":1},{\"reps\":8,\"rest_seconds\":180,\"rir\":1}],\"notes\":\"Pełny zakres ruchu\"},{\"name\":\"wiosłowanie sztangą\",\"sets\":[{\"reps\":8,\"weight\":60,\"rest_seconds\":150,\"rir\":2},{\"reps\":8,\"weight\":60,\"rest_seconds\":150,\"rir\":2},{\"reps\":8,\"weight\":60,\"rest_seconds\":150,\"rir\":2}]}]},{\"name\":\"Legs A\",\"exercises\":[{\"name\":\"przysiad ze sztangą\",\"sets\":[{\"reps\":8,\"weight\":100,\"rest_seconds\":180,\"rir\":2},{\"reps\":8,\"weight\":100,\"rest_seconds\":180,\"rir\":2},{\"reps\":8,\"weight\":100,\"rest_seconds\":180,\"rir\":2}],\"notes\":\"Głęboki przysiad\"},{\"name\":\"wykroki z hantlami\",\"sets\":[{\"reps\":12,\"weight\":20,\"rest_seconds\":120,\"rir\":2},{\"reps\":12,\"weight\":20,\"rest_seconds\":120,\"rir\":2}]}]}]}"
+      }
+    }
+  ],
+  "model": "google/gemini-2.0-flash-exp:free",
+  "usage": {
+    "prompt_tokens": 250,
+    "completion_tokens": 450,
+    "total_tokens": 700
+  }
+}

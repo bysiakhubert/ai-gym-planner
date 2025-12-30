@@ -1,0 +1,10 @@
+{
+  "choices": [
+    {
+      "message": {
+        "content": "{\"invalid_field\":\"This doesn't match the expected schema\",\"missing_required\":true}"
+      }
+    }
+  ],
+  "model": "google/gemini-2.0-flash-exp:free"
+}

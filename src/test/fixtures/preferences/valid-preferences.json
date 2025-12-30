@@ -1,0 +1,7 @@
+{
+  "goal": "hipertrofia",
+  "system": "PPL",
+  "available_days": ["monday", "wednesday", "friday"],
+  "session_duration_minutes": 60,
+  "cycle_duration_weeks": 4
+}

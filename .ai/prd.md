@@ -72,6 +72,7 @@ Następujące funkcjonalności celowo NIE wchodzą w zakres MVP, aby umożliwić
   3. System wymaga hasła o minimalnej sile (np. 8 znaków).
   4. Po pomyślnej rejestracji jestem automatycznie zalogowany i przekierowany do głównego panelu aplikacji.
   5. W przypadku próby rejestracji na istniejący e-mail, otrzymuję stosowny komunikat błędu.
+  6. Rejestracja odbywają się na dedykowanj stronie.
 
 ---
 
@@ -83,6 +84,9 @@ Następujące funkcjonalności celowo NIE wchodzą w zakres MVP, aby umożliwić
   2. Po poprawnym wprowadzeniu danych jestem zalogowany i widzę główny panel.
   3. W przypadku podania błędnych danych, wyświetlany jest komunikat o nieprawidłowym loginie lub haśle.
   4. Sesja użytkownika jest utrzymywana po zamknięciu i ponownym otwarciu przeglądarki.
+  5. Niezalogowany uzytkownik nie ma dostepu do zadnych funkcjonalności aplikacji.
+  6. Uzytkownik ma mozliwosc odzyskania chasła jeśli go zapomniał. Nowe wygeneroeane chasło będzie wysłane na jego adres e-mail.
+  7. Logowanie odbywają się na dedykowanj stronie.
 
 ### 5.2. Plany Treningowe
 

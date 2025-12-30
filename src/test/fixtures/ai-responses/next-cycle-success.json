@@ -1,0 +1,10 @@
+{
+  "choices": [
+    {
+      "message": {
+        "content": "{\"name\":\"PPL Cykl 2 - Progresja\",\"description\":\"Drugi cykl z podwyższonymi ciężarami na podstawie analizy poprzednich treningów\",\"schedule\":[{\"name\":\"Push A\",\"exercises\":[{\"name\":\"wyciskanie sztangi na ławce poziomej\",\"sets\":[{\"reps\":8,\"weight\":85,\"rest_seconds\":150,\"rir\":2},{\"reps\":8,\"weight\":85,\"rest_seconds\":150,\"rir\":2},{\"reps\":8,\"weight\":85,\"rest_seconds\":150,\"rir\":2}],\"notes\":\"Zwiększony ciężar o 5kg\"},{\"name\":\"wyciskanie hantli na ławce skośnej\",\"sets\":[{\"reps\":10,\"weight\":32,\"rest_seconds\":120,\"rir\":2},{\"reps\":10,\"weight\":32,\"rest_seconds\":120,\"rir\":2},{\"reps\":10,\"weight\":32,\"rest_seconds\":120,\"rir\":2}]}]}]}"
+      }
+    }
+  ],
+  "model": "google/gemini-2.0-flash-exp:free"
+}

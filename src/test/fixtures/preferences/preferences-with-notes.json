@@ -1,0 +1,8 @@
+{
+  "goal": "hipertrofia",
+  "system": "PPL",
+  "available_days": ["monday", "wednesday", "friday", "saturday"],
+  "session_duration_minutes": 90,
+  "cycle_duration_weeks": 6,
+  "notes": "Mam kontuzję kolana. Proszę unikać ciężkich przysiadów i wypadów. Preferuję leg press."
+}

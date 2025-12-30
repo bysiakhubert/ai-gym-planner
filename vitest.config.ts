@@ -20,10 +20,10 @@ export default defineConfig({
         '**/.astro/**',
       ],
       thresholds: {
-        lines: 70,
-        functions: 70,
-        branches: 70,
-        statements: 70,
+        lines: 80,
+        functions: 80,
+        branches: 80,
+        statements: 80,
       },
     },
     include: ['**/*.{test,spec}.{js,mjs,cjs,ts,mts,cts,jsx,tsx}'],
@@ -32,6 +32,7 @@ export default defineConfig({
   resolve: {
     alias: {
       '@': resolve(__dirname, './src'),
+      'astro:env/server': resolve(__dirname, './src/test/mocks/astro-env.mock.ts'),
     },
   },
 });

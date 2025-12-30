@@ -1,0 +1,58 @@
+{
+  "id": "550e8400-e29b-41d4-a716-446655440000",
+  "user_id": "user-123",
+  "name": "Test Training Plan",
+  "effective_from": "2025-12-30T00:00:00.000Z",
+  "effective_to": "2026-01-27T00:00:00.000Z",
+  "source": "ai",
+  "prompt": null,
+  "preferences": {
+    "goal": "hipertrofia",
+    "system": "PPL",
+    "available_days": ["monday", "wednesday", "friday"],
+    "session_duration_minutes": 60,
+    "cycle_duration_weeks": 4
+  },
+  "plan": {
+    "schedule": {
+      "2025-12-30": {
+        "name": "Push Day",
+        "done": false,
+        "exercises": [
+          {
+            "name": "Bench Press",
+            "sets": [
+              { "reps": 10, "weight": 80, "rest_seconds": 90 },
+              { "reps": 10, "weight": 80, "rest_seconds": 90 },
+              { "reps": 10, "weight": 80, "rest_seconds": 90 }
+            ]
+          },
+          {
+            "name": "Overhead Press",
+            "sets": [
+              { "reps": 8, "weight": 50, "rest_seconds": 120 },
+              { "reps": 8, "weight": 50, "rest_seconds": 120 }
+            ]
+          }
+        ]
+      },
+      "2026-01-01": {
+        "name": "Pull Day",
+        "done": false,
+        "exercises": [
+          {
+            "name": "Pull-ups",
+            "sets": [
+              { "reps": 8, "rest_seconds": 180 },
+              { "reps": 8, "rest_seconds": 180 },
+              { "reps": 8, "rest_seconds": 180 }
+            ]
+          }
+        ]
+      }
+    }
+  },
+  "archived": false,
+  "created_at": "2025-12-30T10:00:00.000Z",
+  "updated_at": "2025-12-30T10:00:00.000Z"
+}

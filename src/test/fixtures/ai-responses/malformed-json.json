@@ -1,0 +1,10 @@
+{
+  "choices": [
+    {
+      "message": {
+        "content": "{\"name\":\"Test Plan\",\"description\":\"Invalid JSON - missing closing brace"
+      }
+    }
+  ],
+  "model": "google/gemini-2.0-flash-exp:free"
+}
