@@ -41,6 +41,11 @@ GymPlanner is an MVP web application designed to simplify the process of plannin
   - Supabase (PostgreSQL, Auth)
   - Openrouter.ai (AI model providers & API cost limits)
 
+- **Testing**:
+  - Vitest (Unit & Integration)
+  - React Testing Library (Component Testing)
+  - Playwright (E2E)
+
 - **CI/CD & Hosting**:
   - GitHub Actions
   - Docker & DigitalOcean

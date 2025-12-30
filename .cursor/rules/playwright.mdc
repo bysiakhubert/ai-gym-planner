@@ -1,0 +1,39 @@
+## TESTING
+
+### Guidelines for E2E
+
+#### PLAYWRIGHT
+
+- Initialize configuration only with Chromium/Desktop Chrome browser
+- Use browser contexts for isolating test environments
+- Implement the Page Object Model for maintainable tests
+- Use locators for resilient element selection
+- Leverage API testing for backend validation
+- Implement visual comparison with expect(page).toHaveScreenshot()
+- Use the codegen tool for test recording
+- Leverage trace viewer for debugging test failures
+- Implement test hooks for setup and teardown
+- Use expect assertions with specific matchers
+- Leverage parallel execution for faster test runs
+
+#### Configuration Location
+
+- Playwright config: `playwright.config.ts`
+- Custom fixtures: `e2e/fixtures/base.ts`
+- Page Objects: `e2e/page-objects/`
+
+#### Test File Structure
+
+- Place tests in `e2e/` directory
+- Use naming convention: `*.spec.ts`
+- Create Page Objects for each major page in `e2e/page-objects/`
+- Extend BasePage class for common functionality
+
+#### Best Practices
+
+- Use user-facing selectors: `getByRole()`, `getByLabel()`, `getByText()`
+- Avoid hard-coded waits, use `waitForSelector()` or `waitForLoadState()`
+- Isolate tests - each should be independent
+- Use fixtures for common setup/teardown
+- Leverage parallel execution for speed
+- Use trace viewer for debugging: `npx playwright show-trace trace.zip`
