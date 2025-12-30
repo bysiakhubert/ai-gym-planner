@@ -2,7 +2,6 @@ import type { APIRoute } from "astro";
 import type { ApiError, ContinuePlanRequest } from "src/types";
 import { ContinuePlanRequestSchema } from "src/lib/schemas/plans";
 import { planService, PlanNotFoundError, DateOverlapError } from "src/lib/services/planService";
-import { DEFAULT_USER_ID } from "src/db/supabase.client";
 import { z } from "zod";
 
 export const prerender = false;
@@ -32,10 +31,20 @@ const PlanIdSchema = z.string().uuid("Invalid plan ID format");
  * @returns 500 Internal Server Error for unexpected errors
  */
 export const POST: APIRoute = async ({ params, request, locals }) => {
-  const { supabase } = locals;
+  const { supabase, user } = locals;
 
-  // TODO: Replace DEFAULT_USER_ID with authenticated user from locals.user after auth implementation
-  const userId = DEFAULT_USER_ID;
+  if (!user) {
+    const errorResponse: ApiError = {
+      error: "Unauthorized",
+      message: "Musisz być zalogowany, aby uzyskać dostęp do tego zasobu",
+    };
+    return new Response(JSON.stringify(errorResponse), {
+      status: 401,
+      headers: { "Content-Type": "application/json" },
+    });
+  }
+
+  const userId = user.id;
 
   // Step 1: Validate plan ID parameter
   const planIdResult = PlanIdSchema.safeParse(params.id);

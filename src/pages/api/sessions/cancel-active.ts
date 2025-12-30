@@ -1,6 +1,5 @@
 import type { APIRoute } from "astro";
 import type { ApiError } from "src/types";
-import { DEFAULT_USER_ID } from "src/db/supabase.client";
 
 export const prerender = false;
 
@@ -16,8 +15,20 @@ export const prerender = false;
  * @returns 500 Internal Server Error for unexpected errors
  */
 export const POST: APIRoute = async ({ locals }) => {
-  const { supabase } = locals;
-  const userId = DEFAULT_USER_ID;
+  const { supabase, user } = locals;
+
+  if (!user) {
+    const errorResponse: ApiError = {
+      error: "Unauthorized",
+      message: "Musisz być zalogowany, aby uzyskać dostęp do tego zasobu",
+    };
+    return new Response(JSON.stringify(errorResponse), {
+      status: 401,
+      headers: { "Content-Type": "application/json" },
+    });
+  }
+
+  const userId = user.id;
 
   try {
     // Step 1: Find the active session

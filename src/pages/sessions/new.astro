@@ -1,6 +1,12 @@
 ---
 import Layout from "@/layouts/Layout.astro";
-import type { PlanResponse, CreateSessionRequest, SessionStructure, SessionSet } from "@/types";
+import type { SessionStructure, SessionSet } from "@/types";
+import { planService, PlanNotFoundError } from "@/lib/services/planService";
+import { 
+  sessionService, 
+  ActiveSessionConflictError, 
+  WorkoutAlreadyCompletedError 
+} from "@/lib/services/sessionService";
 
 export const prerender = false;
 
@@ -13,82 +19,82 @@ if (!planId || !date) {
   return Astro.redirect("/?error=missing_params");
 }
 
+// Check authentication
+const { supabase, user } = Astro.locals;
+
+if (!user) {
+  return Astro.redirect("/login");
+}
+
+const userId = user.id;
+
 let errorMessage: string | undefined;
 
 try {
-  // Step 1: Fetch the plan to get workout data
-  const planResponse = await fetch(new URL(`/api/plans/${planId}`, Astro.url.origin));
+  // Step 1: Fetch the plan to get workout data using planService
+  const plan = await planService.getPlanById(supabase, userId, planId);
 
-  if (!planResponse.ok) {
-    if (planResponse.status === 404) {
-      return Astro.redirect("/?error=plan_not_found");
-    }
-    errorMessage = "Nie udało się pobrać planu treningowego.";
-  } else {
-    const plan: PlanResponse = await planResponse.json();
+  // Step 2: Find the workout day for the given date
+  const workoutDay = plan.plan.schedule[date];
 
-    // Step 2: Find the workout day for the given date
-    const workoutDay = plan.plan.schedule[date];
+  if (!workoutDay) {
+    return Astro.redirect(`/plans/${planId}?error=no_workout_for_date`);
+  }
 
-    if (!workoutDay) {
-      return Astro.redirect(`/plans/${planId}?error=no_workout_for_date`);
-    }
+  // Step 2b: Check if workout is already completed
+  if (workoutDay.done) {
+    return Astro.redirect(`/plans/${planId}?error=workout_already_completed`);
+  }
 
-    // Step 2b: Check if workout is already completed
-    if (workoutDay.done) {
-      return Astro.redirect(`/plans/${planId}?error=workout_already_completed`);
-    }
-
-    // Step 3: Transform workout data to session structure
-    const sessionStructure: SessionStructure = {
-      plan_name: plan.name,
-      day_name: workoutDay.name,
-      date: date,
-      exercises: workoutDay.exercises.map((exercise) => ({
-        name: exercise.name,
-        sets: exercise.sets.map((set): SessionSet => ({
-          planned_reps: set.reps,
-          planned_weight: set.weight,
-          actual_reps: null,
-          actual_weight: null,
-          rest_seconds: set.rest_seconds,
-          completed: false,
-        })),
+  // Step 3: Transform workout data to session structure
+  const sessionStructure: SessionStructure = {
+    plan_name: plan.name,
+    day_name: workoutDay.name,
+    date: date,
+    exercises: workoutDay.exercises.map((exercise) => ({
+      name: exercise.name,
+      sets: exercise.sets.map((set): SessionSet => ({
+        planned_reps: set.reps,
+        planned_weight: set.weight,
+        actual_reps: null,
+        actual_weight: null,
+        rest_seconds: set.rest_seconds,
+        completed: false,
       })),
-    };
+    })),
+  };
 
-    // Step 4: Create the session via API
-    const createRequest: CreateSessionRequest = {
+  // Step 4: Create the session using sessionService
+  try {
+    await sessionService.create(supabase, userId, {
       plan_id: planId,
       date: date,
       session: sessionStructure,
-    };
-
-    const sessionResponse = await fetch(new URL("/api/sessions", Astro.url.origin), {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify(createRequest),
     });
 
-    if (!sessionResponse.ok) {
-      const errorData = await sessionResponse.json();
-      
-      // Check if there's already an active session
-      if (sessionResponse.status === 409) {
-        // Redirect to conflict resolution page with context about requested session
-        return Astro.redirect(`/sessions/conflict?planId=${planId}&date=${date}`);
-      }
-
-      errorMessage = errorData.message || "Nie udało się rozpocząć sesji treningowej.";
-    } else {
-      // Session created successfully - redirect to active session
-      return Astro.redirect("/session/active");
+    // Session created successfully - redirect to active session
+    return Astro.redirect("/session/active");
+  } catch (sessionError) {
+    // Check if there's already an active session
+    if (sessionError instanceof ActiveSessionConflictError) {
+      // Redirect to conflict resolution page with context about requested session
+      return Astro.redirect(`/sessions/conflict?planId=${planId}&date=${date}`);
     }
+
+    if (sessionError instanceof WorkoutAlreadyCompletedError) {
+      return Astro.redirect(`/plans/${planId}?error=workout_already_completed`);
+    }
+
+    throw sessionError;
   }
 } catch (error) {
   console.error("Session start error:", error);
+
+  // Handle plan not found error
+  if (error instanceof PlanNotFoundError) {
+    return Astro.redirect("/?error=plan_not_found");
+  }
+
   errorMessage = "Wystąpił błąd podczas rozpoczynania sesji treningowej.";
 }
 ---
@@ -109,4 +115,3 @@ try {
     </div>
   </div>
 </Layout>
-

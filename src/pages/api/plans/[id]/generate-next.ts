@@ -5,7 +5,6 @@ import { planService, PlanNotFoundError } from "src/lib/services/planService";
 import { sessionService } from "src/lib/services/sessionService";
 import { AiPlannerService } from "src/lib/services/aiPlannerService";
 import { auditLogService } from "src/lib/services/auditLogService";
-import { DEFAULT_USER_ID } from "src/db/supabase.client";
 
 export const prerender = false;
 
@@ -40,10 +39,20 @@ const GenerateNextCycleRequestSchema = z.object({
  * @returns 500 Internal Server Error for AI generation failures
  */
 export const POST: APIRoute = async ({ params, request, locals }) => {
-  const { supabase } = locals;
+  const { supabase, user } = locals;
 
-  // TODO: Replace DEFAULT_USER_ID with authenticated user from locals.user after auth implementation
-  const userId = DEFAULT_USER_ID;
+  if (!user) {
+    const errorResponse: ApiError = {
+      error: "Unauthorized",
+      message: "Musisz być zalogowany, aby uzyskać dostęp do tego zasobu",
+    };
+    return new Response(JSON.stringify(errorResponse), {
+      status: 401,
+      headers: { "Content-Type": "application/json" },
+    });
+  }
+
+  const userId = user.id;
 
   // Step 1: Validate plan ID
   const planIdResult = PlanIdSchema.safeParse(params.id);

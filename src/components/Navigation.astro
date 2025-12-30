@@ -7,6 +7,7 @@
  */
 
 import { NewPlanButton } from "@/components/NewPlanButton";
+import { LogoutButton } from "@/components/auth";
 
 interface Props {
   currentPath?: string;
@@ -37,31 +38,33 @@ function isActive(href: string, current: string): boolean {
 <header
   class="sticky top-0 z-50 w-full border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60"
 >
-  <div class="container mx-auto flex h-14 items-center px-4">
-    <!-- Logo -->
-    <a href="/" class="flex items-center gap-2 mr-8 font-semibold text-lg">
-      <svg
-        xmlns="http://www.w3.org/2000/svg"
-        viewBox="0 0 24 24"
-        fill="none"
-        stroke="currentColor"
-        stroke-width="2"
-        stroke-linecap="round"
-        stroke-linejoin="round"
-        class="size-6 text-primary"
-      >
-        <path d="M6.5 6.5a3.5 3.5 0 1 0 0 7"></path>
-        <path d="M17.5 6.5a3.5 3.5 0 1 1 0 7"></path>
-        <path d="M6.5 17.5a3.5 3.5 0 1 0 0-7"></path>
-        <path d="M17.5 17.5a3.5 3.5 0 1 1 0-7"></path>
-        <path d="M6.5 10h11"></path>
-        <path d="M6.5 14h11"></path>
-      </svg>
-      <span class="hidden sm:inline">GymPlanner</span>
-    </a>
+  <div class="container mx-auto flex h-14 items-center justify-between px-4">
+    <!-- Left side: Logo + Navigation -->
+    <div class="flex items-center gap-4">
+      <!-- Logo -->
+      <a href="/" class="flex items-center gap-2 font-semibold text-lg">
+        <svg
+          xmlns="http://www.w3.org/2000/svg"
+          viewBox="0 0 24 24"
+          fill="none"
+          stroke="currentColor"
+          stroke-width="2"
+          stroke-linecap="round"
+          stroke-linejoin="round"
+          class="size-6 text-primary"
+        >
+          <path d="M6.5 6.5a3.5 3.5 0 1 0 0 7"></path>
+          <path d="M17.5 6.5a3.5 3.5 0 1 1 0 7"></path>
+          <path d="M6.5 17.5a3.5 3.5 0 1 0 0-7"></path>
+          <path d="M17.5 17.5a3.5 3.5 0 1 1 0-7"></path>
+          <path d="M6.5 10h11"></path>
+          <path d="M6.5 14h11"></path>
+        </svg>
+        <span class="hidden sm:inline">GymPlanner</span>
+      </a>
 
-    <!-- Navigation Links -->
-    <nav class="flex items-center gap-1" aria-label="Główna nawigacja">
+      <!-- Navigation Links -->
+      <nav class="flex items-center gap-1" aria-label="Główna nawigacja">
       {
         navLinks.map((link) => (
           <a
@@ -126,8 +129,14 @@ function isActive(href: string, current: string): boolean {
           </a>
         ))
       }
-      <!-- New Plan Dropdown -->
-      <NewPlanButton variant="nav" currentPath={currentPath} client:load />
-    </nav>
+        <!-- New Plan Dropdown -->
+        <NewPlanButton variant="nav" currentPath={currentPath} client:load />
+      </nav>
+    </div>
+
+    <!-- Right side: Logout Button -->
+    <div class="flex items-center">
+      <LogoutButton client:load />
+    </div>
   </div>
 </header>

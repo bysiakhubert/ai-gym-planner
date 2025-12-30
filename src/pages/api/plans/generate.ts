@@ -8,7 +8,7 @@ import {
   OpenRouterAPIError,
   OpenRouterParseError,
 } from "src/lib/services/openRouterService";
-import { DEFAULT_USER_ID } from "src/db/supabase.client";
+import type { ApiError } from "src/types";
 
 export const prerender = false;
 
@@ -19,8 +19,20 @@ const RATE_LIMIT_WINDOW_MS = 60 * 60 * 1000; // 1 hour
 const RATE_LIMIT_MAX_REQUESTS = 10;
 
 export const POST: APIRoute = async ({ request, locals }) => {
-  const { supabase } = locals;
-  const userId = DEFAULT_USER_ID;
+  const { supabase, user } = locals;
+
+  if (!user) {
+    const errorResponse: ApiError = {
+      error: "Unauthorized",
+      message: "Musisz być zalogowany, aby uzyskać dostęp do tego zasobu",
+    };
+    return new Response(JSON.stringify(errorResponse), {
+      status: 401,
+      headers: { "Content-Type": "application/json" },
+    });
+  }
+
+  const userId = user.id;
 
   // Rate limiting check
   const now = Date.now();

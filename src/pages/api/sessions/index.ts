@@ -2,7 +2,6 @@ import type { APIRoute } from "astro";
 import type { ApiError } from "src/types";
 import { CreateSessionRequestSchema, ListSessionsQueryParamsSchema } from "src/lib/schemas/sessions";
 import { sessionService, ActiveSessionConflictError, PlanAccessDeniedError, WorkoutAlreadyCompletedError } from "src/lib/services/sessionService";
-import { DEFAULT_USER_ID } from "src/db/supabase.client";
 import { ZodError } from "zod";
 
 export const prerender = false;
@@ -26,10 +25,20 @@ export const prerender = false;
  * @returns 500 Internal Server Error for unexpected errors
  */
 export const GET: APIRoute = async ({ request, locals }) => {
-  const { supabase } = locals;
+  const { supabase, user } = locals;
 
-  // TODO: Replace DEFAULT_USER_ID with authenticated user from locals.user after auth implementation
-  const userId = DEFAULT_USER_ID;
+  if (!user) {
+    const errorResponse: ApiError = {
+      error: "Unauthorized",
+      message: "Musisz być zalogowany, aby uzyskać dostęp do tego zasobu",
+    };
+    return new Response(JSON.stringify(errorResponse), {
+      status: 401,
+      headers: { "Content-Type": "application/json" },
+    });
+  }
+
+  const userId = user.id;
 
   // Parse query parameters from URL
   const url = new URL(request.url);
@@ -100,10 +109,20 @@ export const GET: APIRoute = async ({ request, locals }) => {
  * @returns 500 Internal Server Error for unexpected errors
  */
 export const POST: APIRoute = async ({ request, locals }) => {
-  const { supabase } = locals;
+  const { supabase, user } = locals;
 
-  // TODO: Replace DEFAULT_USER_ID with authenticated user from locals.user after auth implementation
-  const userId = DEFAULT_USER_ID;
+  if (!user) {
+    const errorResponse: ApiError = {
+      error: "Unauthorized",
+      message: "Musisz być zalogowany, aby uzyskać dostęp do tego zasobu",
+    };
+    return new Response(JSON.stringify(errorResponse), {
+      status: 401,
+      headers: { "Content-Type": "application/json" },
+    });
+  }
+
+  const userId = user.id;
 
   // Parse request body
   let requestBody;

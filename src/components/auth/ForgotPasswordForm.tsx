@@ -27,18 +27,27 @@ export function ForgotPasswordForm() {
     setSuccess(false);
 
     try {
-      // TODO: Implement API call to Supabase resetPasswordForEmail or endpoint
-      console.log("Forgot password data:", data);
-      
-      // Placeholder for future implementation
-      await new Promise((resolve) => setTimeout(resolve, 1000));
-      
+      const response = await fetch("/api/auth/reset-password", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(data),
+      });
+
+      const result = await response.json();
+
+      if (!response.ok) {
+        setError(result.message || "Wystąpił błąd podczas wysyłania linku");
+        return;
+      }
+
+      // Success - show message regardless of whether email exists (security)
       setSuccess(true);
       form.reset();
-      
-      // Success message will be shown to the user
     } catch (err) {
-      setError("Wystąpił błąd podczas wysyłania linku resetującego. Spróbuj ponownie.");
+      console.error("Reset password error:", err);
+      setError("Wystąpił błąd połączenia. Spróbuj ponownie");
     } finally {
       setIsSubmitting(false);
     }

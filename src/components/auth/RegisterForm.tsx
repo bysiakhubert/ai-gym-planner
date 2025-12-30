@@ -29,18 +29,35 @@ export function RegisterForm() {
     setSuccess(false);
 
     try {
-      // TODO: Implement API call to /api/auth/register
-      console.log("Register data:", data);
-      
-      // Placeholder for future implementation
-      await new Promise((resolve) => setTimeout(resolve, 1000));
-      
+      const response = await fetch("/api/auth/register", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(data),
+      });
+
+      const result = await response.json();
+
+      if (!response.ok) {
+        // Server returned an error
+        setError(result.message || "Nie udało się utworzyć konta");
+        return;
+      }
+
+      // Successful registration
       setSuccess(true);
       form.reset();
-      
-      // After successful registration, user will be redirected or shown success message
+
+      // Redirect to login page after 2 seconds
+      if (result.redirectTo) {
+        setTimeout(() => {
+          window.location.href = result.redirectTo;
+        }, 2000);
+      }
     } catch (err) {
-      setError("Użytkownik o takim emailu już istnieje lub wystąpił błąd");
+      console.error("Registration error:", err);
+      setError("Wystąpił błąd połączenia. Spróbuj ponownie");
     } finally {
       setIsSubmitting(false);
     }
@@ -66,7 +83,7 @@ export function RegisterForm() {
           <Alert className="mb-6 border-green-500 bg-green-50 text-green-900 dark:bg-green-950 dark:text-green-100">
             <CircleCheck className="h-4 w-4" />
             <AlertDescription>
-              Konto zostało utworzone! Sprawdź swoją skrzynkę email, aby potwierdzić adres.
+              Konto zostało utworzone pomyślnie! Za chwilę zostaniesz przekierowany do strony logowania.
             </AlertDescription>
           </Alert>
         )}

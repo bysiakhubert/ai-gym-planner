@@ -2,21 +2,25 @@
 import Layout from "../layouts/Layout.astro";
 import { DashboardView } from "@/components/dashboard/DashboardView";
 import type { DashboardResponse } from "@/types";
+import { DashboardService } from "@/lib/services/dashboard.service";
 
 export const prerender = false;
+
+// User is guaranteed to exist here due to middleware protection
+const { supabase, user } = Astro.locals;
 
 let dashboardData: DashboardResponse | null = null;
 let errorMessage: string | undefined;
 
-try {
-  // Fetch dashboard data from API endpoint
-  const response = await fetch(new URL("/api/dashboard", Astro.url.origin));
+// Safety check - should never happen due to middleware, but defensive programming
+if (!user) {
+  return Astro.redirect("/login");
+}
 
-  if (!response.ok) {
-    errorMessage = "Nie udało się pobrać danych pulpitu.";
-  } else {
-    dashboardData = await response.json();
-  }
+try {
+  // Fetch dashboard data directly using service instead of HTTP fetch
+  const dashboardService = new DashboardService(supabase, user.id);
+  dashboardData = await dashboardService.getDashboardSummary();
 } catch (error) {
   console.error("Dashboard fetch error:", error);
   errorMessage = "Wystąpił błąd podczas ładowania pulpitu.";

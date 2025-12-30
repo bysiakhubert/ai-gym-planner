@@ -1,7 +1,6 @@
 import type { APIRoute } from "astro";
 import type { ApiError } from "src/types";
 import { planService, PlanNotFoundError, DateOverlapError } from "src/lib/services/planService";
-import { DEFAULT_USER_ID } from "src/db/supabase.client";
 import { z } from "zod";
 import { CreatePlanRequestSchema } from "src/lib/schemas/plans";
 
@@ -22,10 +21,20 @@ const PlanIdSchema = z.string().uuid("Invalid plan ID format");
  * @returns 500 Internal Server Error for unexpected errors
  */
 export const GET: APIRoute = async ({ params, locals }) => {
-  const { supabase } = locals;
+  const { supabase, user } = locals;
 
-  // TODO: Replace DEFAULT_USER_ID with authenticated user from locals.user after auth implementation
-  const userId = DEFAULT_USER_ID;
+  if (!user) {
+    const errorResponse: ApiError = {
+      error: "Unauthorized",
+      message: "Musisz być zalogowany, aby uzyskać dostęp do tego zasobu",
+    };
+    return new Response(JSON.stringify(errorResponse), {
+      status: 401,
+      headers: { "Content-Type": "application/json" },
+    });
+  }
+
+  const userId = user.id;
 
   // Validate plan ID
   const planIdResult = PlanIdSchema.safeParse(params.id);
@@ -91,10 +100,20 @@ export const GET: APIRoute = async ({ params, locals }) => {
  * @returns 500 Internal Server Error for unexpected errors
  */
 export const DELETE: APIRoute = async ({ params, locals }) => {
-  const { supabase } = locals;
+  const { supabase, user } = locals;
 
-  // TODO: Replace DEFAULT_USER_ID with authenticated user from locals.user after auth implementation
-  const userId = DEFAULT_USER_ID;
+  if (!user) {
+    const errorResponse: ApiError = {
+      error: "Unauthorized",
+      message: "Musisz być zalogowany, aby uzyskać dostęp do tego zasobu",
+    };
+    return new Response(JSON.stringify(errorResponse), {
+      status: 401,
+      headers: { "Content-Type": "application/json" },
+    });
+  }
+
+  const userId = user.id;
 
   // Validate plan ID
   const planIdResult = PlanIdSchema.safeParse(params.id);
@@ -161,10 +180,20 @@ export const DELETE: APIRoute = async ({ params, locals }) => {
  * @returns 500 Internal Server Error for unexpected errors
  */
 export const PUT: APIRoute = async ({ params, request, locals }) => {
-  const { supabase } = locals;
+  const { supabase, user } = locals;
 
-  // TODO: Replace DEFAULT_USER_ID with authenticated user from locals.user after auth implementation
-  const userId = DEFAULT_USER_ID;
+  if (!user) {
+    const errorResponse: ApiError = {
+      error: "Unauthorized",
+      message: "Musisz być zalogowany, aby uzyskać dostęp do tego zasobu",
+    };
+    return new Response(JSON.stringify(errorResponse), {
+      status: 401,
+      headers: { "Content-Type": "application/json" },
+    });
+  }
+
+  const userId = user.id;
 
   // Validate plan ID
   const planIdResult = PlanIdSchema.safeParse(params.id);

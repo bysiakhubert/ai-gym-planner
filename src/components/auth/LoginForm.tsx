@@ -26,15 +26,29 @@ export function LoginForm() {
     setError(null);
 
     try {
-      // TODO: Implement API call to /api/auth/signin
-      console.log("Login data:", data);
-      
-      // Placeholder for future implementation
-      await new Promise((resolve) => setTimeout(resolve, 1000));
-      
-      // After successful login, redirect will be handled by the API
+      const response = await fetch("/api/auth/signin", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(data),
+      });
+
+      const result = await response.json();
+
+      if (!response.ok) {
+        // Server returned an error
+        setError(result.message || "Nieprawidłowy email lub hasło");
+        return;
+      }
+
+      // Successful login - redirect to dashboard
+      if (result.redirectTo) {
+        window.location.href = result.redirectTo;
+      }
     } catch (err) {
-      setError("Nieprawidłowy email lub hasło");
+      console.error("Login error:", err);
+      setError("Wystąpił błąd połączenia. Spróbuj ponownie");
     } finally {
       setIsSubmitting(false);
     }

@@ -1,6 +1,7 @@
 ---
 import Layout from "@/layouts/Layout.astro";
 import type { SessionResponse } from "@/types";
+import { sessionService } from "@/lib/services/sessionService";
 
 export const prerender = false;
 
@@ -8,43 +9,38 @@ export const prerender = false;
 const requestedPlanId = Astro.url.searchParams.get("planId");
 const requestedDate = Astro.url.searchParams.get("date");
 
+// Check authentication
+const { supabase, user } = Astro.locals;
+
+if (!user) {
+  return Astro.redirect("/login");
+}
+
+const userId = user.id;
+
 let activeSession: SessionResponse | null = null;
 let errorMessage: string | undefined;
 
 try {
-  // Fetch the current active session
-  const params = new URLSearchParams({
-    completed: "false",
-    limit: "1",
+  // Fetch the current active session using sessionService
+  const sessions = await sessionService.list(supabase, userId, {
+    completed: false,
+    limit: 1,
     sort: "started_at",
     order: "desc",
   });
 
-  const listResponse = await fetch(new URL(`/api/sessions?${params.toString()}`, Astro.url.origin));
-
-  if (!listResponse.ok) {
-    errorMessage = "Nie udało się pobrać informacji o aktywnej sesji.";
-  } else {
-    const listData = await listResponse.json();
-
-    if (listData.sessions.length === 0) {
-      // No active session - redirect back to start new session
-      if (requestedPlanId && requestedDate) {
-        return Astro.redirect(`/sessions/new?planId=${requestedPlanId}&date=${requestedDate}`);
-      }
-      return Astro.redirect("/?message=no_active_session");
+  if (sessions.sessions.length === 0) {
+    // No active session - redirect back to start new session
+    if (requestedPlanId && requestedDate) {
+      return Astro.redirect(`/sessions/new?planId=${requestedPlanId}&date=${requestedDate}`);
     }
-
-    // Fetch full session details
-    const sessionId = listData.sessions[0].id;
-    const sessionResponse = await fetch(new URL(`/api/sessions/${sessionId}`, Astro.url.origin));
-
-    if (!sessionResponse.ok) {
-      errorMessage = "Nie udało się pobrać szczegółów sesji.";
-    } else {
-      activeSession = await sessionResponse.json();
-    }
+    return Astro.redirect("/?message=no_active_session");
   }
+
+  // Get full session details
+  const sessionId = sessions.sessions[0].id;
+  activeSession = await sessionService.getById(supabase, userId, sessionId);
 } catch (error) {
   console.error("Session conflict check error:", error);
   errorMessage = "Wystąpił błąd podczas sprawdzania aktywnej sesji.";
@@ -212,4 +208,3 @@ function formatDate(dateString: string): string {
     }
   </script>
 </Layout>
-

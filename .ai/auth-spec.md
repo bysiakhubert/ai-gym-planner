@@ -146,3 +146,5 @@ Obecny plik `supabase.client.ts` tworzy klienta typu singleton, co jest poprawne
 6.  Aktualizacja Middleware o ochronę tras.
 7.  Dostosowanie `Layout.astro` i komponentów nawigacji.
 
+
+
