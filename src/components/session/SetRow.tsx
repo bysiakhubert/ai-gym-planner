@@ -65,6 +65,7 @@ export function SetRow({ set, setIndex, onUpdate, onStartRest }: SetRowProps) {
 
   return (
     <div
+      data-testid="set-row"
       className={cn(
         "grid grid-cols-[36px_1fr_1fr_44px_44px] sm:grid-cols-[40px_1fr_1fr_48px_48px] gap-1.5 sm:gap-2 items-center p-2 sm:p-3 rounded-lg transition-colors",
         set.completed && "bg-green-50 dark:bg-green-950/30"
@@ -103,6 +104,7 @@ export function SetRow({ set, setIndex, onUpdate, onStartRest }: SetRowProps) {
       {/* Reps Input */}
       <div className="relative">
         <Input
+          data-testid="actual-reps-input"
           type="number"
           inputMode="numeric"
           min="0"
@@ -139,6 +141,7 @@ export function SetRow({ set, setIndex, onUpdate, onStartRest }: SetRowProps) {
       {/* Completion Checkbox */}
       <div className="flex justify-center">
         <Checkbox
+          data-testid="set-checkbox"
           checked={set.completed}
           onCheckedChange={handleCompletedChange}
           aria-label={`Oznacz serię ${setIndex + 1} jako ukończoną`}

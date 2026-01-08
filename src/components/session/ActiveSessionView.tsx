@@ -91,7 +91,7 @@ export function ActiveSessionView({ initialSession, error }: ActiveSessionViewPr
       />
 
       {/* Exercise List */}
-      <div className="flex-1 container mx-auto px-3 sm:px-4 py-4 space-y-3 sm:space-y-4">
+      <div data-testid="exercises-list" className="flex-1 container mx-auto px-3 sm:px-4 py-4 space-y-3 sm:space-y-4">
         {sessionData.exercises.map((exercise: SessionExercise, exerciseIdx: number) => (
           <ExerciseCard
             key={`${exercise.name}-${exerciseIdx}`}

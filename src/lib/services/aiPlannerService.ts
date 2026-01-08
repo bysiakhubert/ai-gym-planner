@@ -26,24 +26,9 @@ export class AiPlannerService {
       notes: preferences.notes ? sanitizeUserInput(preferences.notes) : undefined,
     };
 
-    console.log("\n=== GENEROWANIE NOWEGO PLANU - DEBUG ===");
-    console.log("Oryginalne uwagi użytkownika:", preferences.notes || "(brak)");
-    console.log("Uwagi po sanityzacji:", sanitizedPreferences.notes || "(brak)");
-    console.log("Cel treningowy:", preferences.goal);
-    console.log("System treningowy:", preferences.system);
-    console.log("Liczba dni:", preferences.available_days.length);
-    console.log("Czas treningu:", preferences.session_duration_minutes, "minut");
-    console.log("Długość cyklu:", preferences.cycle_duration_weeks, "tygodni");
-
     // Build AI prompts
     const systemPrompt = SYSTEM_MESSAGE;
     const userPrompt = formatUserPrompt(sanitizedPreferences);
-
-    console.log("\n--- SYSTEM PROMPT ---");
-    console.log(systemPrompt);
-    console.log("\n--- USER PROMPT ---");
-    console.log(userPrompt);
-    console.log("\n=== KONIEC DEBUG ===\n");
 
     // Call OpenRouter API with structured output and fallback support
     const completionResult = await openRouterService.generateStructuredCompletion<AiPlanResponse>(
@@ -113,13 +98,6 @@ export class AiPlannerService {
     // Sanitize user notes to prevent prompt injection
     const sanitizedNotes = notes ? sanitizeUserInput(notes) : undefined;
 
-    console.log("\n=== GENEROWANIE KOLEJNEGO CYKLU - DEBUG ===");
-    console.log("Oryginalne uwagi użytkownika:", notes || "(brak)");
-    console.log("Uwagi po sanityzacji:", sanitizedNotes || "(brak)");
-    console.log("Plan bazowy:", currentPlan.name);
-    console.log("Długość nowego cyklu:", cycleDurationWeeks, "tygodni");
-    console.log("Liczba sesji w historii:", sessionHistory.length);
-
     // Calculate new cycle dates - start after the current plan ends
     const currentPlanEndDate = new Date(currentPlan.effective_to);
     const startDate = new Date(currentPlanEndDate);
@@ -137,12 +115,6 @@ export class AiPlannerService {
       cycleDurationWeeks,
       sanitizedNotes
     );
-
-    console.log("\n--- SYSTEM PROMPT ---");
-    console.log(systemPrompt);
-    console.log("\n--- USER PROMPT ---");
-    console.log(userPrompt);
-    console.log("\n=== KONIEC DEBUG ===\n");
 
     // Call OpenRouter API with structured output and fallback support
     const completionResult = await openRouterService.generateStructuredCompletion<AiNextCycleResponse>(

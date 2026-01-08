@@ -1,40 +1,49 @@
 import { test, expect } from '../../fixtures/base';
+import { seedTestPlanOnly } from '../../helpers/test-data-seeder';
 
 /**
  * Start workout E2E tests (US-007)
  * Tests for starting a workout session
  */
 test.describe('Rozpoczęcie treningu', () => {
-  test('powinno przekierować do dashboardu gdy brak aktywnej sesji', async ({ page }) => {
+  // Seed only plan (without session) so dashboard shows workout cards
+  test.beforeEach(async () => {
+    await seedTestPlanOnly();
+  });
+
+  test('powinno przekierować gdy brak aktywnej sesji', async ({ page }) => {
+    // Try to access active session page when no session exists
     await page.goto('/session/active');
     await page.waitForLoadState('networkidle');
 
-    // Should redirect to dashboard with message, stay on session page, or redirect to home
+    // Should redirect away from /session/active since no active session exists
     const url = page.url();
-    const isValidState =
-      url.includes('/session/active') ||
-      url.includes('?message=') ||
-      url === 'http://localhost:4321/' ||
-      url.endsWith('/');
-    expect(isValidState).toBeTruthy();
+    expect(url).not.toContain('/session/active');
   });
 
   test('powinno wyświetlić nadchodzące treningi na dashboardzie', async ({
     dashboardPage,
     page,
   }) => {
-    await dashboardPage.goto();
+    // Navigate to dashboard with no-cache to force fresh data
+    await page.goto('/', { waitUntil: 'networkidle' });
+    
+    // Reload to ensure we get fresh data from server
+    await page.reload({ waitUntil: 'networkidle' });
+    
     await dashboardPage.expectDashboardLoaded();
 
-    // Check if workout cards exist or empty state
+    // With seeded data, workout cards should exist
     const workoutCards = page.locator('[data-testid="workout-card"]');
-    const emptyState = page.getByTestId('empty-dashboard');
+    
+    // Wait for cards to appear (they load via SSR)
+    await page.waitForSelector('[data-testid="workout-card"]', { timeout: 5000 }).catch(() => {
+      // If no cards appear, check if we have empty state instead
+    });
+    
+    const cardCount = await workoutCards.count();
 
-    // Either workout cards or empty state should be visible
-    const hasCards = (await workoutCards.count()) > 0;
-    const hasEmptyState = await emptyState.isVisible().catch(() => false);
-
-    expect(hasCards || hasEmptyState).toBeTruthy();
+    expect(cardCount).toBeGreaterThan(0);
   });
 
   test('powinno mieć przycisk rozpoczęcia treningu dla każdego nadchodzącego treningu', async ({
@@ -47,13 +56,13 @@ test.describe('Rozpoczęcie treningu', () => {
     const workoutCards = page.locator('[data-testid="workout-card"]');
     const cardCount = await workoutCards.count();
 
-    if (cardCount > 0) {
-      const firstCard = workoutCards.first();
-      // It renders as a link with button styles because of asChild
-      const startButton = firstCard.getByRole('link', { name: /rozpocznij/i });
+    expect(cardCount).toBeGreaterThan(0);
 
-      await expect(startButton).toBeVisible();
-    }
+    const firstCard = workoutCards.first();
+    // It renders as a link with button styles because of asChild
+    const startButton = firstCard.getByRole('link', { name: /rozpocznij/i });
+
+    await expect(startButton).toBeVisible();
   });
 
   test('powinno rozpocząć trening po kliknięciu przycisku', async ({ dashboardPage, page }) => {
@@ -63,18 +72,16 @@ test.describe('Rozpoczęcie treningu', () => {
     const workoutCards = page.locator('[data-testid="workout-card"]');
     const cardCount = await workoutCards.count();
 
-    if (cardCount > 0) {
-      const startButton = workoutCards.first().getByRole('link', { name: /rozpocznij/i });
+    expect(cardCount).toBeGreaterThan(0);
 
-      if ((await startButton.count()) > 0) {
-        await startButton.click();
+    const startButton = workoutCards.first().getByRole('link', { name: /rozpocznij/i });
+    await expect(startButton).toBeVisible();
+    await startButton.click();
 
-        // Should navigate to session or conflict page
-        await page.waitForURL(/\/session\/(active|conflict)|sessions\/conflict/, {
-          timeout: 10000,
-        });
-      }
-    }
+    // Should navigate to session or conflict page
+    await page.waitForURL(/\/session\/(active|conflict)|sessions\/conflict/, {
+      timeout: 10000,
+    });
   });
 });
 

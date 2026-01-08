@@ -26,12 +26,12 @@ type CustomFixtures = {
  * Includes automatic database cleanup after each test
  */
 export const test = base.extend<CustomFixtures>({
-  // Auto-cleanup fixture - runs after each test
+  // Auto-cleanup fixture - runs AFTER each test to clean up
   page: async ({ page }, use) => {
     // Run the test
     await use(page);
     
-    // Cleanup after test completes
+    // Cleanup AFTER test completes
     // Only cleanup for authenticated tests to avoid issues with unauthenticated tests
     const isAuthenticatedTest = page.url().includes('localhost');
     if (isAuthenticatedTest) {
