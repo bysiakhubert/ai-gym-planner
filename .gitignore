@@ -26,6 +26,7 @@ test-results/
 playwright-report/
 screenshots/
 *.png-snapshots/
+e2e/.auth/
 
 # misc
 .vscode/

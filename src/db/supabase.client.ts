@@ -14,10 +14,11 @@ export const DEFAULT_USER_ID = "00000000-0000-0000-0000-000000000000";
 
 /**
  * Cookie options for Supabase authentication
+ * Note: secure is set to false in development/test to work with http://localhost
  */
 export const cookieOptions: CookieOptionsWithName = {
   path: "/",
-  secure: true,
+  secure: import.meta.env.PROD,
   httpOnly: true,
   sameSite: "lax",
 };

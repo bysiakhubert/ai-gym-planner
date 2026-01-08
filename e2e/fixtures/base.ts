@@ -1,36 +1,71 @@
-import { test as base } from '@playwright/test';
+import { test as base, expect } from '@playwright/test';
+import { LoginPage } from '../page-objects/LoginPage';
+import { RegisterPage } from '../page-objects/RegisterPage';
+import { DashboardPage } from '../page-objects/DashboardPage';
+import { PlanGeneratorPage } from '../page-objects/PlanGeneratorPage';
+import { PlansListPage } from '../page-objects/PlansListPage';
+import { ActiveSessionPage } from '../page-objects/ActiveSessionPage';
+import { HistoryPage } from '../page-objects/HistoryPage';
+import { cleanupTestData } from '../helpers/database-cleanup';
 
 /**
- * Extend Playwright's base test with custom fixtures
- * Example: authenticated user, test data, etc.
+ * Custom fixtures types for E2E tests
  */
-
-// Define custom fixtures types
 type CustomFixtures = {
-  // Add your custom fixtures here
-  // Example:
-  // authenticatedPage: Page;
+  loginPage: LoginPage;
+  registerPage: RegisterPage;
+  dashboardPage: DashboardPage;
+  planGeneratorPage: PlanGeneratorPage;
+  plansListPage: PlansListPage;
+  activeSessionPage: ActiveSessionPage;
+  historyPage: HistoryPage;
 };
 
-// Extend base test with custom fixtures
+/**
+ * Extended Playwright test with custom Page Object fixtures
+ * Includes automatic database cleanup after each test
+ */
 export const test = base.extend<CustomFixtures>({
-  // Define fixture implementations here
-  // Example:
-  // authenticatedPage: async ({ page }, use) => {
-  //   // Setup: Login the user
-  //   await page.goto('/login');
-  //   await page.fill('[name="email"]', 'test@example.com');
-  //   await page.fill('[name="password"]', 'password');
-  //   await page.click('button[type="submit"]');
-  //   await page.waitForURL('/dashboard');
-  //
-  //   // Use the authenticated page in tests
-  //   await use(page);
-  //
-  //   // Teardown: Logout
-  //   await page.click('[data-testid="logout"]');
-  // },
+  // Auto-cleanup fixture - runs after each test
+  page: async ({ page }, use) => {
+    // Run the test
+    await use(page);
+    
+    // Cleanup after test completes
+    // Only cleanup for authenticated tests to avoid issues with unauthenticated tests
+    const isAuthenticatedTest = page.url().includes('localhost');
+    if (isAuthenticatedTest) {
+      await cleanupTestData();
+    }
+  },
+
+  loginPage: async ({ page }, use) => {
+    await use(new LoginPage(page));
+  },
+
+  registerPage: async ({ page }, use) => {
+    await use(new RegisterPage(page));
+  },
+
+  dashboardPage: async ({ page }, use) => {
+    await use(new DashboardPage(page));
+  },
+
+  planGeneratorPage: async ({ page }, use) => {
+    await use(new PlanGeneratorPage(page));
+  },
+
+  plansListPage: async ({ page }, use) => {
+    await use(new PlansListPage(page));
+  },
+
+  activeSessionPage: async ({ page }, use) => {
+    await use(new ActiveSessionPage(page));
+  },
+
+  historyPage: async ({ page }, use) => {
+    await use(new HistoryPage(page));
+  },
 });
 
-export { expect } from '@playwright/test';
-
+export { expect };

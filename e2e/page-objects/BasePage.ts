@@ -1,4 +1,4 @@
-import { Page, Locator } from '@playwright/test';
+import { Page, Locator, expect } from '@playwright/test';
 
 /**
  * Base Page Object class with common functionality
@@ -6,9 +6,17 @@ import { Page, Locator } from '@playwright/test';
  */
 export class BasePage {
   readonly page: Page;
+  readonly navigation: Locator;
+  readonly loadingSpinner: Locator;
+  readonly toastContainer: Locator;
 
   constructor(page: Page) {
     this.page = page;
+    // Use semantic role selector for better stability
+    // Try with name first, fallback to any navigation element
+    this.navigation = page.getByRole('navigation').first();
+    this.loadingSpinner = page.getByRole('status');
+    this.toastContainer = page.locator('[data-sonner-toaster]');
   }
 
   /**
@@ -23,6 +31,42 @@ export class BasePage {
    */
   async waitForPageLoad() {
     await this.page.waitForLoadState('networkidle');
+  }
+
+  /**
+   * Wait for React hydration to complete
+   */
+  async waitForHydration() {
+    await this.page.waitForLoadState('domcontentloaded');
+    await this.page.waitForLoadState('load');
+    
+    // Wait for Astro page transitions and hydration to complete
+    await this.page.evaluate(() => {
+      return new Promise<void>((resolve) => {
+        if (document.readyState === 'complete') {
+          // Additional wait for React hydration
+          setTimeout(resolve, 300);
+        } else {
+          window.addEventListener('load', () => {
+            setTimeout(resolve, 300);
+          });
+        }
+      });
+    });
+  }
+
+  /**
+   * Expect a toast message to be visible
+   */
+  async expectToastMessage(message: string | RegExp) {
+    await expect(this.toastContainer.getByText(message)).toBeVisible();
+  }
+
+  /**
+   * Expect no loading state
+   */
+  async expectNoLoadingState() {
+    await expect(this.loadingSpinner).not.toBeVisible();
   }
 
   /**
@@ -49,7 +93,7 @@ export class BasePage {
   /**
    * Wait for navigation to complete
    */
-  async waitForNavigation(url?: string) {
+  async waitForNavigation(url?: string | RegExp) {
     if (url) {
       await this.page.waitForURL(url);
     } else {
@@ -57,4 +101,3 @@ export class BasePage {
     }
   }
 }
-

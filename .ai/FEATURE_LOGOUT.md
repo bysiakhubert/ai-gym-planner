@@ -285,3 +285,5 @@ Funkcjonalność wylogowania została **w pełni zaimplementowana** i spełnia w
 
 Użytkownik może teraz swobodnie logować się, korzystać z aplikacji i wylogowywać się w każdej chwili.
 
+
+

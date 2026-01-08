@@ -39,7 +39,7 @@ export function ExerciseCard({ dayIndex, exerciseIndex, onRemove, canRemove }: E
   };
 
   return (
-    <div className="rounded-lg border bg-card p-4 shadow-sm">
+    <div className="rounded-lg border bg-card p-4 shadow-sm" data-testid="exercise-row">
       {/* Exercise header */}
       <div className="mb-3 flex items-start gap-3">
         <div className="flex size-9 shrink-0 items-center justify-center rounded-md bg-primary/10 text-primary">
