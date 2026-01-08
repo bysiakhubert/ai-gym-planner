@@ -148,3 +148,5 @@ Obecny plik `supabase.client.ts` tworzy klienta typu singleton, co jest poprawne
 
 
 
+
+

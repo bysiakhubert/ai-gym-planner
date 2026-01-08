@@ -75,6 +75,7 @@ export function WorkoutTimer({
             {/* Timer Display */}
             <div className="flex items-center gap-3 min-w-0">
               <span
+                data-testid="timer-display"
                 className={cn(
                   "text-4xl sm:text-3xl font-mono font-bold tabular-nums tracking-tight",
                   isUrgent && "text-orange-600 dark:text-orange-400",

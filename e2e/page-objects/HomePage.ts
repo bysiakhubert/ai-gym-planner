@@ -2,18 +2,15 @@ import { Page, Locator } from '@playwright/test';
 import { BasePage } from './BasePage';
 
 /**
- * Page Object for the Home page
- * Demonstrates the Page Object Model pattern
+ * Page Object for the Home/Landing page
+ * Used for unauthenticated users
  */
 export class HomePage extends BasePage {
-  // Locators
   readonly heading: Locator;
-  readonly navigation: Locator;
 
   constructor(page: Page) {
     super(page);
     this.heading = page.locator('h1');
-    this.navigation = page.locator('nav');
   }
 
   /**
@@ -35,14 +32,13 @@ export class HomePage extends BasePage {
    * Get the main heading text
    */
   async getHeadingText(): Promise<string> {
-    return await this.heading.textContent() || '';
+    return (await this.heading.textContent()) || '';
   }
 
   /**
-   * Navigate to a specific section
+   * Navigate to a specific section via navigation
    */
   async navigateTo(linkText: string) {
     await this.navigation.getByRole('link', { name: linkText }).click();
   }
 }
-

@@ -27,7 +27,7 @@ export function EmptyDashboard({ state }: EmptyDashboardProps) {
   const { icon, title, description } = content[state];
 
   return (
-    <div className="flex flex-col items-center justify-center text-center py-16 px-4">
+    <div className="flex flex-col items-center justify-center text-center py-16 px-4" data-testid="empty-dashboard">
       <div className="text-6xl mb-6" role="img" aria-hidden="true">
         {icon}
       </div>

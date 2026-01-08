@@ -7,6 +7,7 @@ import { Slider } from "@/components/ui/slider";
 import { Textarea } from "@/components/ui/textarea";
 import { Form, FormControl, FormDescription, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { SafetyDisclaimer } from "@/components/SafetyDisclaimer";
 import type { UserPreferences } from "@/types";
 
 // Validation schema
@@ -72,6 +73,10 @@ export function PlannerForm({ isSubmitting, onSubmit }: PlannerFormProps) {
         <p className="text-sm sm:text-base text-muted-foreground">
           Wypełnij formularz, aby wygenerować spersonalizowany plan treningowy
         </p>
+      </div>
+
+      <div data-testid="safety-disclaimer">
+        <SafetyDisclaimer />
       </div>
 
       <Form {...form}>

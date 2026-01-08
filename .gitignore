@@ -15,6 +15,7 @@ pnpm-debug.log*
 .env
 .env.production
 .env.local
+.env.test
 
 # macOS-specific files
 .DS_Store
@@ -25,6 +26,7 @@ test-results/
 playwright-report/
 screenshots/
 *.png-snapshots/
+e2e/.auth/
 
 # misc
 .vscode/
@@ -32,3 +34,4 @@ screenshots/
 *.swp
 *.swo
 *~
+.env.test

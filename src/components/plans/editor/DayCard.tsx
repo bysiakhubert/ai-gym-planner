@@ -47,7 +47,7 @@ export function DayCard({ index, onRemove, canRemove }: DayCardProps) {
   };
 
   return (
-    <Card className="relative">
+    <Card className="relative" data-testid="day-card">
       <CardHeader className="border-b pb-4">
         <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:gap-6">
           {/* Day info */}

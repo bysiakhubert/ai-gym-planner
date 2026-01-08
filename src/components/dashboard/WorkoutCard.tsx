@@ -49,6 +49,7 @@ export function WorkoutCard({ workout }: WorkoutCardProps) {
 
   return (
     <Card
+      data-testid="workout-card"
       className={
         is_next
           ? "border-primary bg-primary/5 shadow-md"
