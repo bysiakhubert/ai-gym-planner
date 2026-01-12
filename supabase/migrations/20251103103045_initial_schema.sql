@@ -11,9 +11,10 @@
 --   - audit_events: Logs all significant user actions and AI interactions
 --
 -- Security:
---   - RLS enabled on all tables
+--   - RLS ENABLED on all tables
 --   - Owner-only access policies (users can only access their own data)
 --   - Policies scoped to authenticated users only
+--   - Audit log is immutable (no UPDATE/DELETE policies)
 --
 -- Functions & Triggers:
 --   - update_updated_at_column(): Auto-updates updated_at timestamp
@@ -21,7 +22,8 @@
 --
 -- Author: AI-Generated
 -- Date: 2025-11-03
--- Schema Version: 1.0.0
+-- Updated: 2026-01-12 (RLS enabled)
+-- Schema Version: 1.1.0
 -- ============================================================================
 
 -- ============================================================================
@@ -221,148 +223,137 @@ comment on column audit_events.payload is
 -- SECTION 3: Row-Level Security (RLS)
 -- ============================================================================
 
--- TODO: RLS is temporarily disabled for early development. Uncomment these lines before production.
 -- Enable RLS on all tables to enforce data isolation
--- alter table plans enable row level security;
--- alter table training_sessions enable row level security;
--- alter table audit_events enable row level security;
+alter table plans enable row level security;
+alter table training_sessions enable row level security;
+alter table audit_events enable row level security;
 
 -- ============================================================================
 -- SECTION 4: RLS Policies - plans table
 -- ============================================================================
 
--- TODO: Uncomment this policy when authentication is implemented.
 -- Policy: Authenticated users can view their own plans
 -- Rationale: Users must be logged in and can only see plans they own
--- create policy "authenticated users can view own plans"
---     on plans
---     for select
---     to authenticated
---     using (user_id = auth.uid());
+create policy "authenticated users can view own plans"
+    on plans
+    for select
+    to authenticated
+    using (user_id = auth.uid());
 
--- comment on policy "authenticated users can view own plans" on plans is
--- 'Allows authenticated users to view only their own plans';
+comment on policy "authenticated users can view own plans" on plans is
+'Allows authenticated users to view only their own plans';
 
--- TODO: Uncomment this policy when authentication is implemented.
 -- Policy: Authenticated users can insert their own plans
 -- Rationale: Users can create new plans, but only associated with their own user_id
--- create policy "authenticated users can insert own plans"
---     on plans
---     for insert
---     to authenticated
---     with check (user_id = auth.uid());
+create policy "authenticated users can insert own plans"
+    on plans
+    for insert
+    to authenticated
+    with check (user_id = auth.uid());
 
--- comment on policy "authenticated users can insert own plans" on plans is
--- 'Allows authenticated users to create plans only for themselves';
+comment on policy "authenticated users can insert own plans" on plans is
+'Allows authenticated users to create plans only for themselves';
 
--- TODO: Uncomment this policy when authentication is implemented.
 -- Policy: Authenticated users can update their own plans
 -- Rationale: Users can modify their plans, but only their own
--- create policy "authenticated users can update own plans"
---     on plans
---     for update
---     to authenticated
---     using (user_id = auth.uid())
---     with check (user_id = auth.uid());
+create policy "authenticated users can update own plans"
+    on plans
+    for update
+    to authenticated
+    using (user_id = auth.uid())
+    with check (user_id = auth.uid());
 
--- comment on policy "authenticated users can update own plans" on plans is
--- 'Allows authenticated users to update only their own plans';
+comment on policy "authenticated users can update own plans" on plans is
+'Allows authenticated users to update only their own plans';
 
--- TODO: Uncomment this policy when authentication is implemented.
 -- Policy: Authenticated users can delete their own plans
 -- Rationale: Users can archive (soft delete) their plans
 -- Note: Application layer should set archived=true rather than hard DELETE
--- create policy "authenticated users can delete own plans"
---     on plans
---     for delete
---     to authenticated
---     using (user_id = auth.uid());
+create policy "authenticated users can delete own plans"
+    on plans
+    for delete
+    to authenticated
+    using (user_id = auth.uid());
 
--- comment on policy "authenticated users can delete own plans" on plans is
--- 'Allows authenticated users to delete/archive only their own plans';
+comment on policy "authenticated users can delete own plans" on plans is
+'Allows authenticated users to delete/archive only their own plans';
 
 -- ============================================================================
 -- SECTION 5: RLS Policies - training_sessions table
 -- ============================================================================
 
--- TODO: Uncomment this policy when authentication is implemented.
 -- Policy: Authenticated users can view their own sessions
 -- Rationale: Users must be logged in and can only see sessions they own
--- create policy "authenticated users can view own sessions"
---     on training_sessions
---     for select
---     to authenticated
---     using (user_id = auth.uid());
+create policy "authenticated users can view own sessions"
+    on training_sessions
+    for select
+    to authenticated
+    using (user_id = auth.uid());
 
--- comment on policy "authenticated users can view own sessions" on training_sessions is
--- 'Allows authenticated users to view only their own training sessions';
+comment on policy "authenticated users can view own sessions" on training_sessions is
+'Allows authenticated users to view only their own training sessions';
 
--- TODO: Uncomment this policy when authentication is implemented.
 -- Policy: Authenticated users can insert their own sessions
 -- Rationale: Users can create new training sessions, but only for themselves
--- create policy "authenticated users can insert own sessions"
---     on training_sessions
---     for insert
---     to authenticated
---     with check (user_id = auth.uid());
+create policy "authenticated users can insert own sessions"
+    on training_sessions
+    for insert
+    to authenticated
+    with check (user_id = auth.uid());
 
--- comment on policy "authenticated users can insert own sessions" on training_sessions is
--- 'Allows authenticated users to create training sessions only for themselves';
+comment on policy "authenticated users can insert own sessions" on training_sessions is
+'Allows authenticated users to create training sessions only for themselves';
 
--- TODO: Uncomment this policy when authentication is implemented.
 -- Policy: Authenticated users can update their own sessions
 -- Rationale: Users can modify in-progress sessions (updating actual reps/weights)
 -- Note: Application should treat sessions as immutable once ended_at is set
--- create policy "authenticated users can update own sessions"
---     on training_sessions
---     for update
---     to authenticated
---     using (user_id = auth.uid())
---     with check (user_id = auth.uid());
+create policy "authenticated users can update own sessions"
+    on training_sessions
+    for update
+    to authenticated
+    using (user_id = auth.uid())
+    with check (user_id = auth.uid());
 
--- comment on policy "authenticated users can update own sessions" on training_sessions is
--- 'Allows authenticated users to update only their own sessions (typically in-progress sessions)';
+comment on policy "authenticated users can update own sessions" on training_sessions is
+'Allows authenticated users to update only their own sessions (typically in-progress sessions)';
 
--- TODO: Uncomment this policy when authentication is implemented.
 -- Policy: Authenticated users can delete their own sessions
 -- Rationale: Users can delete sessions if needed (e.g., accidental creation)
 -- Note: Application should rarely delete sessions - they are historical records
--- create policy "authenticated users can delete own sessions"
---     on training_sessions
---     for delete
---     to authenticated
---     using (user_id = auth.uid());
+create policy "authenticated users can delete own sessions"
+    on training_sessions
+    for delete
+    to authenticated
+    using (user_id = auth.uid());
 
--- comment on policy "authenticated users can delete only their own sessions" on training_sessions is
--- 'Allows authenticated users to delete only their own sessions';
+comment on policy "authenticated users can delete only their own sessions" on training_sessions is
+'Allows authenticated users to delete only their own sessions';
 
 -- ============================================================================
 -- SECTION 6: RLS Policies - audit_events table
 -- ============================================================================
 
--- TODO: Uncomment this policy when authentication is implemented.
 -- Policy: Authenticated users can view their own events
 -- Rationale: Users can view their own activity history and AI interactions
--- create policy "authenticated users can view own events"
---     on audit_events
---     for select
---     to authenticated
---     using (user_id = auth.uid());
+create policy "authenticated users can view own events"
+    on audit_events
+    for select
+    to authenticated
+    using (user_id = auth.uid());
 
--- comment on policy "authenticated users can view own events" on audit_events is
--- 'Allows authenticated users to view only their own audit events';
+comment on policy "authenticated users can view own events" on audit_events is
+'Allows authenticated users to view only their own audit events';
 
--- TODO: Uncomment this policy when authentication is implemented.
 -- Policy: Authenticated users can insert their own events
 -- Rationale: Application can log events on behalf of authenticated users
--- create policy "authenticated users can insert own events"
---     on audit_events
---     for insert
---     to authenticated
---     with check (user_id = auth.uid());
+create policy "authenticated users can insert own events"
+    on audit_events
+    for insert
+    to authenticated
+    with check (user_id = auth.uid());
 
--- comment on policy "authenticated users can insert own events" on audit_events is
--- 'Allows authenticated users (via application) to create audit events for themselves';
+comment on policy "authenticated users can insert own events" on audit_events is
+'Allows authenticated users (via application) to create audit events for themselves';
 
 -- Note: No UPDATE or DELETE policies for audit_events
 -- Rationale: Audit log must be immutable (append-only) for data integrity and compliance
@@ -375,14 +366,19 @@ comment on column audit_events.payload is
 --   ✓ Created function: update_updated_at_column()
 --   ✓ Created trigger: update_plans_updated_at
 --   ✓ Enabled RLS on all tables
---   ⚠ RLS policies COMMENTED OUT (temporarily disabled)
+--   ✓ Created RLS policies for all tables (owner-only access)
 --   ✓ Added comprehensive comments for documentation
 --
+-- Security:
+--   ✓ Row-Level Security (RLS) is ENABLED
+--   ✓ Users can only access their own data (user_id = auth.uid())
+--   ✓ All operations require authentication
+--   ✓ Audit log is immutable (no UPDATE/DELETE policies)
+--
 -- Next Steps:
---   1. Verify migration with: supabase db reset
---   2. Uncomment RLS policies when ready to enable security
---   3. Test RLS policies with test users
---   4. Implement application-layer validation for plan date overlaps
---   5. Set up automatic backups and PITR
+--   1. Reset local database: supabase db reset
+--   2. Test RLS with multiple users to verify isolation
+--   3. Run E2E tests to verify application behavior
+--   4. Monitor for any RLS-related errors in logs
 -- ============================================================================
 

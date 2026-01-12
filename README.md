@@ -84,25 +84,74 @@ OPENROUTER_API_KEY=your-openrouter-api-key
 
 ### Running the App
 
+#### Local Development with Supabase
+
+1. **Start Supabase locally:**
+   ```bash
+   supabase start
+   ```
+
+2. **Start the development server:**
+   ```bash
+   npm run dev
+   ```
+
+3. Visit `http://localhost:4321` to view the application.
+
+#### Database Setup
+
+The project uses **Row-Level Security (RLS)** to ensure data isolation between users. On first run:
+
 ```bash
-npm run dev
+# Reset database and apply migrations
+supabase db reset
 ```
 
-Visit `http://localhost:3000` (or the port shown) to view the application.
+> **Note**: See `.ai/RLS_IMPLEMENTATION.md` for detailed RLS documentation and testing procedures.
 
 ## Available Scripts
 
 In the project directory, you can run:
 
-| Command            | Description                 |
-| ------------------ | --------------------------- |
-| `npm run dev`      | Start Astro dev server      |
-| `npm run build`    | Build for production        |
-| `npm run preview`  | Preview production build    |
-| `npm run astro`    | Astro CLI                   |
-| `npm run lint`     | Run ESLint                  |
-| `npm run lint:fix` | Run ESLint with `--fix`     |
-| `npm run format`   | Run Prettier to format code |
+| Command              | Description                          |
+| -------------------- | ------------------------------------ |
+| `npm run dev`        | Start Astro dev server               |
+| `npm run build`      | Build for production                 |
+| `npm run preview`    | Preview production build             |
+| `npm run astro`      | Astro CLI                            |
+| `npm run lint`       | Run ESLint                           |
+| `npm run lint:fix`   | Run ESLint with `--fix`              |
+| `npm run format`     | Run Prettier to format code          |
+| `npm run test:e2e`   | Run E2E tests with Playwright        |
+| `npm run test:unit`  | Run unit tests with Vitest           |
+| `supabase db reset`  | Reset local database and apply migrations |
+| `supabase start`     | Start local Supabase instance        |
+| `supabase stop`      | Stop local Supabase instance         |
+
+## Security
+
+### Row-Level Security (RLS)
+
+GymPlanner implements **PostgreSQL Row-Level Security (RLS)** on all database tables to ensure complete data isolation between users:
+
+- ✅ **Enabled on all tables**: `plans`, `training_sessions`, `audit_events`
+- ✅ **Owner-only access**: Users can only access their own data
+- ✅ **Enforced at database level**: Even if application logic fails, database blocks unauthorized access
+- ✅ **Immutable audit log**: No UPDATE/DELETE operations allowed on `audit_events`
+
+**Policy summary:**
+- Users can SELECT, INSERT, UPDATE, DELETE only records where `user_id = auth.uid()`
+- All operations require authentication (`authenticated` role)
+- Policies are automatically enforced by PostgreSQL
+
+For detailed documentation, see: `.ai/RLS_IMPLEMENTATION.md`
+
+### Authentication
+
+- **Supabase Auth** with email/password
+- Session management with secure HTTP-only cookies
+- Middleware protection for all authenticated routes
+- Automatic redirect to login for unauthenticated access
 
 ## Project Scope
 
