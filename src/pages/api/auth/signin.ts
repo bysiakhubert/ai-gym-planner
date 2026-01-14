@@ -36,7 +36,7 @@ export const POST: APIRoute = async ({ request, locals }) => {
     const { email, password } = validationResult.data;
 
     // Attempt to sign in with Supabase Auth
-    const { data, error } = await supabase.auth.signInWithPassword({
+    const { error } = await supabase.auth.signInWithPassword({
       email,
       password,
     });
@@ -78,7 +78,7 @@ export const POST: APIRoute = async ({ request, locals }) => {
       {
         status: 200,
         headers: { "Content-Type": "application/json" },
-      },
+      }
     );
   } catch (error) {
     // eslint-disable-next-line no-console
@@ -95,6 +95,3 @@ export const POST: APIRoute = async ({ request, locals }) => {
     });
   }
 };
-
-
-

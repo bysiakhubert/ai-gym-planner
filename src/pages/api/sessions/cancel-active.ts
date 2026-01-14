@@ -6,7 +6,7 @@ export const prerender = false;
 /**
  * POST /api/sessions/cancel-active
  * Cancels the current active session by setting ended_at to current time
- * 
+ *
  * This is used when user wants to abandon an in-progress session
  * to start a new one.
  *
@@ -90,4 +90,3 @@ export const POST: APIRoute = async ({ locals }) => {
     });
   }
 };
-

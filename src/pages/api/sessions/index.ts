@@ -1,7 +1,12 @@
 import type { APIRoute } from "astro";
 import type { ApiError } from "src/types";
 import { CreateSessionRequestSchema, ListSessionsQueryParamsSchema } from "src/lib/schemas/sessions";
-import { sessionService, ActiveSessionConflictError, PlanAccessDeniedError, WorkoutAlreadyCompletedError } from "src/lib/services/sessionService";
+import {
+  sessionService,
+  ActiveSessionConflictError,
+  PlanAccessDeniedError,
+  WorkoutAlreadyCompletedError,
+} from "src/lib/services/sessionService";
 import { ZodError } from "zod";
 
 export const prerender = false;

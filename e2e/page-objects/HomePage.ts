@@ -1,5 +1,5 @@
-import { Page, Locator } from '@playwright/test';
-import { BasePage } from './BasePage';
+import { Page, Locator } from "@playwright/test";
+import { BasePage } from "./BasePage";
 
 /**
  * Page Object for the Home/Landing page
@@ -10,14 +10,14 @@ export class HomePage extends BasePage {
 
   constructor(page: Page) {
     super(page);
-    this.heading = page.locator('h1');
+    this.heading = page.locator("h1");
   }
 
   /**
    * Navigate to home page
    */
   async goto() {
-    await super.goto('/');
+    await super.goto("/");
     await this.waitForPageLoad();
   }
 
@@ -32,13 +32,13 @@ export class HomePage extends BasePage {
    * Get the main heading text
    */
   async getHeadingText(): Promise<string> {
-    return (await this.heading.textContent()) || '';
+    return (await this.heading.textContent()) || "";
   }
 
   /**
    * Navigate to a specific section via navigation
    */
   async navigateTo(linkText: string) {
-    await this.navigation.getByRole('link', { name: linkText }).click();
+    await this.navigation.getByRole("link", { name: linkText }).click();
   }
 }

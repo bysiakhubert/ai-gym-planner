@@ -38,6 +38,3 @@ export const GET: APIRoute = async ({ url, redirect }) => {
   // We just redirect to dashboard
   return redirect("/");
 };
-
-
-

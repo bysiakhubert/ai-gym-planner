@@ -11,7 +11,8 @@ export default defineConfig({
   output: "server",
   integrations: [react(), sitemap()],
   server: {
-    port: process.env.NODE_ENV === 'test' ? 4321 : 3000,
+    // eslint-disable-next-line no-undef
+    port: process.env.NODE_ENV === "test" ? 4321 : 3000,
   },
   vite: {
     plugins: [tailwindcss()],
@@ -26,13 +27,13 @@ export default defineConfig({
         context: "server",
         access: "secret",
         optional: true,
-        default: "https://placeholder.supabase.co"
+        default: "https://placeholder.supabase.co",
       }),
       SUPABASE_KEY: envField.string({
         context: "server",
         access: "secret",
         optional: true,
-        default: "placeholder-key"
+        default: "placeholder-key",
       }),
       // OpenRouter AI configuration (optional - validated at runtime when AI is used)
       OPENROUTER_API_KEY: envField.string({ context: "server", access: "secret", optional: true }),
@@ -40,7 +41,8 @@ export default defineConfig({
         context: "server",
         access: "public",
         optional: true,
-        default: process.env.NODE_ENV === 'test' ? "http://localhost:4321" : "http://localhost:3000",
+        // eslint-disable-next-line no-undef
+        default: process.env.NODE_ENV === "test" ? "http://localhost:4321" : "http://localhost:3000",
       }),
     },
   },

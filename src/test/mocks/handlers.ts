@@ -1,4 +1,4 @@
-import { http, HttpResponse } from 'msw';
+import { http, HttpResponse } from "msw";
 
 /**
  * MSW handlers for mocking API requests in tests
@@ -6,9 +6,9 @@ import { http, HttpResponse } from 'msw';
  */
 export const handlers = [
   // Example handler - replace with actual API endpoints
-  http.get('/api/example', () => {
+  http.get("/api/example", () => {
     return HttpResponse.json({
-      message: 'Mocked response',
+      message: "Mocked response",
     });
   }),
 
@@ -18,4 +18,3 @@ export const handlers = [
   //   return HttpResponse.json({ token: 'mock-token' });
   // }),
 ];
-

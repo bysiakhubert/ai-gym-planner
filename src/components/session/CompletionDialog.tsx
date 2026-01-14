@@ -39,9 +39,7 @@ export function CompletionDialog({
     <AlertDialog open={isOpen} onOpenChange={(open) => !open && onClose()}>
       <AlertDialogContent>
         <AlertDialogHeader>
-          <AlertDialogTitle>
-            {isFullyCompleted ? "Gratulacje! 🎉" : "Zakończyć trening?"}
-          </AlertDialogTitle>
+          <AlertDialogTitle>{isFullyCompleted ? "Gratulacje! 🎉" : "Zakończyć trening?"}</AlertDialogTitle>
           <AlertDialogDescription asChild>
             <div className="space-y-2">
               {isFullyCompleted ? (
@@ -90,4 +88,3 @@ export function CompletionDialog({
     </AlertDialog>
   );
 }
-

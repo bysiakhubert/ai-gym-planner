@@ -111,7 +111,7 @@ export function HistoryView() {
   return (
     <div className="space-y-6">
       <h1 className="text-2xl font-bold tracking-tight">Historia treningów</h1>
-      
+
       <HistoryList sessions={sessions} />
 
       {hasMore && (
@@ -131,4 +131,3 @@ export function HistoryView() {
     </div>
   );
 }
-

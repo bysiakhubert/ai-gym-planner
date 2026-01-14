@@ -111,4 +111,3 @@ export function NewPlanButton({ variant = "nav", currentPath = "" }: NewPlanButt
     </DropdownMenu>
   );
 }
-

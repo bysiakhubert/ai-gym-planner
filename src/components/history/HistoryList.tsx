@@ -17,4 +17,3 @@ export function HistoryList({ sessions }: HistoryListProps) {
     </div>
   );
 }
-

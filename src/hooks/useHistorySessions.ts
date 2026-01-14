@@ -1,3 +1,4 @@
+/* eslint-disable react-compiler/react-compiler */
 import { useState, useEffect, useCallback } from "react";
 import type { SessionSummary, PaginationMeta, ListSessionsQueryParams } from "@/types";
 import { fetchSessions } from "@/lib/api/sessions";
@@ -38,42 +39,45 @@ export function useHistorySessions(): UseHistorySessionsReturn {
    * Load sessions from API
    * @param reset - If true, clears current list and fetches from offset 0
    */
-  const loadSessions = useCallback(async (reset = false) => {
-    const currentOffset = reset ? 0 : (pagination?.offset ?? 0) + DEFAULT_LIMIT;
-
-    if (reset) {
-      setIsLoading(true);
-      setError(null);
-    } else {
-      setIsLoadingMore(true);
-    }
-
-    try {
-      const params: ListSessionsQueryParams = {
-        completed: true,
-        limit: DEFAULT_LIMIT,
-        offset: reset ? 0 : currentOffset,
-        sort: "started_at",
-        order: "desc",
-      };
-
-      const response = await fetchSessions(params);
+  const loadSessions = useCallback(
+    async (reset = false) => {
+      const currentOffset = reset ? 0 : (pagination?.offset ?? 0) + DEFAULT_LIMIT;
 
       if (reset) {
-        setSessions(response.sessions);
+        setIsLoading(true);
+        setError(null);
       } else {
-        setSessions((prev) => [...prev, ...response.sessions]);
+        setIsLoadingMore(true);
       }
 
-      setPagination(response.pagination);
-    } catch (err) {
-      const errorMessage = err instanceof Error ? err.message : "Błąd pobierania historii treningów";
-      setError(errorMessage);
-    } finally {
-      setIsLoading(false);
-      setIsLoadingMore(false);
-    }
-  }, [pagination?.offset]);
+      try {
+        const params: ListSessionsQueryParams = {
+          completed: true,
+          limit: DEFAULT_LIMIT,
+          offset: reset ? 0 : currentOffset,
+          sort: "started_at",
+          order: "desc",
+        };
+
+        const response = await fetchSessions(params);
+
+        if (reset) {
+          setSessions(response.sessions);
+        } else {
+          setSessions((prev) => [...prev, ...response.sessions]);
+        }
+
+        setPagination(response.pagination);
+      } catch (err) {
+        const errorMessage = err instanceof Error ? err.message : "Błąd pobierania historii treningów";
+        setError(errorMessage);
+      } finally {
+        setIsLoading(false);
+        setIsLoadingMore(false);
+      }
+    },
+    [pagination?.offset]
+  );
 
   /**
    * Initial data fetch on mount
@@ -82,6 +86,7 @@ export function useHistorySessions(): UseHistorySessionsReturn {
     loadSessions(true);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
+  // ^ Intentionally empty deps - only run on mount
 
   /**
    * Load next page of sessions
@@ -111,4 +116,3 @@ export function useHistorySessions(): UseHistorySessionsReturn {
     retry,
   };
 }
-

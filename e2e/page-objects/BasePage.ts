@@ -1,4 +1,4 @@
-import { Page, Locator, expect } from '@playwright/test';
+import { Page, Locator, expect } from "@playwright/test";
 
 /**
  * Base Page Object class with common functionality
@@ -14,15 +14,15 @@ export class BasePage {
     this.page = page;
     // Use semantic role selector for better stability
     // Try with name first, fallback to any navigation element
-    this.navigation = page.getByRole('navigation').first();
-    this.loadingSpinner = page.getByRole('status');
-    this.toastContainer = page.locator('[data-sonner-toaster]');
+    this.navigation = page.getByRole("navigation").first();
+    this.loadingSpinner = page.getByRole("status");
+    this.toastContainer = page.locator("[data-sonner-toaster]");
   }
 
   /**
    * Navigate to a specific URL
    */
-  async goto(path: string = '/') {
+  async goto(path = "/") {
     await this.page.goto(path);
   }
 
@@ -30,24 +30,24 @@ export class BasePage {
    * Wait for page to be fully loaded
    */
   async waitForPageLoad() {
-    await this.page.waitForLoadState('networkidle');
+    await this.page.waitForLoadState("networkidle");
   }
 
   /**
    * Wait for React hydration to complete
    */
   async waitForHydration() {
-    await this.page.waitForLoadState('domcontentloaded');
-    await this.page.waitForLoadState('load');
-    
+    await this.page.waitForLoadState("domcontentloaded");
+    await this.page.waitForLoadState("load");
+
     // Wait for Astro page transitions and hydration to complete
     await this.page.evaluate(() => {
       return new Promise<void>((resolve) => {
-        if (document.readyState === 'complete') {
+        if (document.readyState === "complete") {
           // Additional wait for React hydration
           setTimeout(resolve, 300);
         } else {
-          window.addEventListener('load', () => {
+          window.addEventListener("load", () => {
             setTimeout(resolve, 300);
           });
         }
@@ -97,7 +97,7 @@ export class BasePage {
     if (url) {
       await this.page.waitForURL(url);
     } else {
-      await this.page.waitForLoadState('networkidle');
+      await this.page.waitForLoadState("networkidle");
     }
   }
 }

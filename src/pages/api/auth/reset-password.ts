@@ -52,13 +52,12 @@ export const POST: APIRoute = async ({ request, locals }) => {
     return new Response(
       JSON.stringify({
         success: true,
-        message:
-          "Jeśli podany adres email istnieje w naszej bazie, otrzymasz link do resetowania hasła",
+        message: "Jeśli podany adres email istnieje w naszej bazie, otrzymasz link do resetowania hasła",
       }),
       {
         status: 200,
         headers: { "Content-Type": "application/json" },
-      },
+      }
     );
   } catch (error) {
     // eslint-disable-next-line no-console
@@ -75,6 +74,3 @@ export const POST: APIRoute = async ({ request, locals }) => {
     });
   }
 };
-
-
-

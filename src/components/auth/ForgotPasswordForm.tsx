@@ -96,9 +96,7 @@ export function ForgotPasswordForm() {
                       {...field}
                     />
                   </FormControl>
-                  <FormDescription>
-                    Wprowadź adres email, którego używasz do logowania
-                  </FormDescription>
+                  <FormDescription>Wprowadź adres email, którego używasz do logowania</FormDescription>
                   <FormMessage />
                 </FormItem>
               )}
@@ -131,4 +129,3 @@ export function ForgotPasswordForm() {
     </Card>
   );
 }
-

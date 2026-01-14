@@ -1,14 +1,14 @@
-import { describe, it, expect } from 'vitest';
+import { describe, it, expect } from "vitest";
 import {
   aiSetSchema,
   aiExerciseSchema,
   aiWorkoutDaySchema,
   aiPlanSchema,
   aiNextCycleSchema,
-} from '@/lib/schemas/ai-response';
+} from "@/lib/schemas/ai-response";
 
-describe('aiSetSchema', () => {
-  it('should validate correct set with all fields', () => {
+describe("aiSetSchema", () => {
+  it("should validate correct set with all fields", () => {
     const validData = {
       reps: 10,
       weight: 80,
@@ -19,7 +19,7 @@ describe('aiSetSchema', () => {
     expect(() => aiSetSchema.parse(validData)).not.toThrow();
   });
 
-  it('should validate set without optional weight', () => {
+  it("should validate set without optional weight", () => {
     const validData = {
       reps: 10,
       rest_seconds: 90,
@@ -29,7 +29,7 @@ describe('aiSetSchema', () => {
     expect(() => aiSetSchema.parse(validData)).not.toThrow();
   });
 
-  it('should validate set without optional rir', () => {
+  it("should validate set without optional rir", () => {
     const validData = {
       reps: 10,
       weight: 80,
@@ -39,7 +39,7 @@ describe('aiSetSchema', () => {
     expect(() => aiSetSchema.parse(validData)).not.toThrow();
   });
 
-  it('should accept zero weight', () => {
+  it("should accept zero weight", () => {
     const validData = {
       reps: 10,
       weight: 0,
@@ -49,7 +49,7 @@ describe('aiSetSchema', () => {
     expect(() => aiSetSchema.parse(validData)).not.toThrow();
   });
 
-  it('should accept rir at minimum (0)', () => {
+  it("should accept rir at minimum (0)", () => {
     const validData = {
       reps: 10,
       rest_seconds: 90,
@@ -59,7 +59,7 @@ describe('aiSetSchema', () => {
     expect(() => aiSetSchema.parse(validData)).not.toThrow();
   });
 
-  it('should accept rir at maximum (5)', () => {
+  it("should accept rir at maximum (5)", () => {
     const validData = {
       reps: 10,
       rest_seconds: 90,
@@ -69,7 +69,7 @@ describe('aiSetSchema', () => {
     expect(() => aiSetSchema.parse(validData)).not.toThrow();
   });
 
-  it('should reject negative reps', () => {
+  it("should reject negative reps", () => {
     const invalidData = {
       reps: -5,
       rest_seconds: 90,
@@ -78,7 +78,7 @@ describe('aiSetSchema', () => {
     expect(() => aiSetSchema.parse(invalidData)).toThrow();
   });
 
-  it('should reject zero reps', () => {
+  it("should reject zero reps", () => {
     const invalidData = {
       reps: 0,
       rest_seconds: 90,
@@ -87,7 +87,7 @@ describe('aiSetSchema', () => {
     expect(() => aiSetSchema.parse(invalidData)).toThrow();
   });
 
-  it('should reject decimal reps', () => {
+  it("should reject decimal reps", () => {
     const invalidData = {
       reps: 10.5,
       rest_seconds: 90,
@@ -96,7 +96,7 @@ describe('aiSetSchema', () => {
     expect(() => aiSetSchema.parse(invalidData)).toThrow();
   });
 
-  it('should reject negative weight', () => {
+  it("should reject negative weight", () => {
     const invalidData = {
       reps: 10,
       weight: -10,
@@ -106,7 +106,7 @@ describe('aiSetSchema', () => {
     expect(() => aiSetSchema.parse(invalidData)).toThrow();
   });
 
-  it('should reject negative rest_seconds', () => {
+  it("should reject negative rest_seconds", () => {
     const invalidData = {
       reps: 10,
       rest_seconds: -30,
@@ -115,7 +115,7 @@ describe('aiSetSchema', () => {
     expect(() => aiSetSchema.parse(invalidData)).toThrow();
   });
 
-  it('should reject rir below 0', () => {
+  it("should reject rir below 0", () => {
     const invalidData = {
       reps: 10,
       rest_seconds: 90,
@@ -125,7 +125,7 @@ describe('aiSetSchema', () => {
     expect(() => aiSetSchema.parse(invalidData)).toThrow();
   });
 
-  it('should reject rir above 5', () => {
+  it("should reject rir above 5", () => {
     const invalidData = {
       reps: 10,
       rest_seconds: 90,
@@ -135,7 +135,7 @@ describe('aiSetSchema', () => {
     expect(() => aiSetSchema.parse(invalidData)).toThrow();
   });
 
-  it('should reject decimal rir', () => {
+  it("should reject decimal rir", () => {
     const invalidData = {
       reps: 10,
       rest_seconds: 90,
@@ -146,79 +146,79 @@ describe('aiSetSchema', () => {
   });
 });
 
-describe('aiExerciseSchema', () => {
-  it('should validate correct exercise with all fields', () => {
+describe("aiExerciseSchema", () => {
+  it("should validate correct exercise with all fields", () => {
     const validData = {
-      name: 'Bench Press',
+      name: "Bench Press",
       sets: [
         { reps: 10, weight: 80, rest_seconds: 90, rir: 2 },
         { reps: 10, weight: 80, rest_seconds: 90, rir: 2 },
       ],
-      notes: 'Keep elbows at 45 degrees',
+      notes: "Keep elbows at 45 degrees",
     };
 
     expect(() => aiExerciseSchema.parse(validData)).not.toThrow();
   });
 
-  it('should validate exercise without optional notes', () => {
+  it("should validate exercise without optional notes", () => {
     const validData = {
-      name: 'Bench Press',
+      name: "Bench Press",
       sets: [{ reps: 10, rest_seconds: 90 }],
     };
 
     expect(() => aiExerciseSchema.parse(validData)).not.toThrow();
   });
 
-  it('should reject empty exercise name', () => {
+  it("should reject empty exercise name", () => {
     const invalidData = {
-      name: '',
+      name: "",
       sets: [{ reps: 10, rest_seconds: 90 }],
     };
 
     expect(() => aiExerciseSchema.parse(invalidData)).toThrow();
   });
 
-  it('should reject exercise name exceeding 100 characters', () => {
+  it("should reject exercise name exceeding 100 characters", () => {
     const invalidData = {
-      name: 'a'.repeat(101),
+      name: "a".repeat(101),
       sets: [{ reps: 10, rest_seconds: 90 }],
     };
 
     expect(() => aiExerciseSchema.parse(invalidData)).toThrow();
   });
 
-  it('should accept exercise name at exactly 100 characters', () => {
+  it("should accept exercise name at exactly 100 characters", () => {
     const validData = {
-      name: 'a'.repeat(100),
+      name: "a".repeat(100),
       sets: [{ reps: 10, rest_seconds: 90 }],
     };
 
     expect(() => aiExerciseSchema.parse(validData)).not.toThrow();
   });
 
-  it('should reject notes exceeding 500 characters', () => {
+  it("should reject notes exceeding 500 characters", () => {
     const invalidData = {
-      name: 'Bench Press',
+      name: "Bench Press",
       sets: [{ reps: 10, rest_seconds: 90 }],
-      notes: 'a'.repeat(501),
+      notes: "a".repeat(501),
     };
 
     expect(() => aiExerciseSchema.parse(invalidData)).toThrow();
   });
 
-  it('should accept notes at exactly 500 characters', () => {
+  it("should accept notes at exactly 500 characters", () => {
     const validData = {
-      name: 'Bench Press',
+      name: "Bench Press",
       sets: [{ reps: 10, rest_seconds: 90 }],
-      notes: 'a'.repeat(500),
+      notes: "a".repeat(500),
     };
 
     expect(() => aiExerciseSchema.parse(validData)).not.toThrow();
   });
 
-  it('should reject empty sets array', () => {
+  it("should reject empty sets array", () => {
     const invalidData = {
-      name: 'Bench Press',
+      name: "Bench Press",
       sets: [],
     };
 
@@ -226,13 +226,13 @@ describe('aiExerciseSchema', () => {
   });
 });
 
-describe('aiWorkoutDaySchema', () => {
-  it('should validate correct workout day', () => {
+describe("aiWorkoutDaySchema", () => {
+  it("should validate correct workout day", () => {
     const validData = {
-      name: 'Push A',
+      name: "Push A",
       exercises: [
         {
-          name: 'Bench Press',
+          name: "Bench Press",
           sets: [{ reps: 10, weight: 80, rest_seconds: 90 }],
         },
       ],
@@ -241,12 +241,12 @@ describe('aiWorkoutDaySchema', () => {
     expect(() => aiWorkoutDaySchema.parse(validData)).not.toThrow();
   });
 
-  it('should reject empty workout day name', () => {
+  it("should reject empty workout day name", () => {
     const invalidData = {
-      name: '',
+      name: "",
       exercises: [
         {
-          name: 'Bench Press',
+          name: "Bench Press",
           sets: [{ reps: 10, rest_seconds: 90 }],
         },
       ],
@@ -255,12 +255,12 @@ describe('aiWorkoutDaySchema', () => {
     expect(() => aiWorkoutDaySchema.parse(invalidData)).toThrow();
   });
 
-  it('should reject workout day name exceeding 100 characters', () => {
+  it("should reject workout day name exceeding 100 characters", () => {
     const invalidData = {
-      name: 'a'.repeat(101),
+      name: "a".repeat(101),
       exercises: [
         {
-          name: 'Bench Press',
+          name: "Bench Press",
           sets: [{ reps: 10, rest_seconds: 90 }],
         },
       ],
@@ -269,25 +269,25 @@ describe('aiWorkoutDaySchema', () => {
     expect(() => aiWorkoutDaySchema.parse(invalidData)).toThrow();
   });
 
-  it('should reject empty exercises array', () => {
+  it("should reject empty exercises array", () => {
     const invalidData = {
-      name: 'Push A',
+      name: "Push A",
       exercises: [],
     };
 
     expect(() => aiWorkoutDaySchema.parse(invalidData)).toThrow();
   });
 
-  it('should validate multiple exercises', () => {
+  it("should validate multiple exercises", () => {
     const validData = {
-      name: 'Push A',
+      name: "Push A",
       exercises: [
         {
-          name: 'Bench Press',
+          name: "Bench Press",
           sets: [{ reps: 10, rest_seconds: 90 }],
         },
         {
-          name: 'Overhead Press',
+          name: "Overhead Press",
           sets: [{ reps: 8, rest_seconds: 120 }],
         },
       ],
@@ -297,26 +297,26 @@ describe('aiWorkoutDaySchema', () => {
   });
 });
 
-describe('aiPlanSchema', () => {
-  it('should validate correct AI plan', () => {
+describe("aiPlanSchema", () => {
+  it("should validate correct AI plan", () => {
     const validData = {
-      name: '4-week PPL Program',
-      description: 'Progressive Push-Pull-Legs program for hypertrophy',
+      name: "4-week PPL Program",
+      description: "Progressive Push-Pull-Legs program for hypertrophy",
       schedule: [
         {
-          name: 'Push A',
+          name: "Push A",
           exercises: [
             {
-              name: 'Bench Press',
+              name: "Bench Press",
               sets: [{ reps: 10, weight: 80, rest_seconds: 90 }],
             },
           ],
         },
         {
-          name: 'Pull A',
+          name: "Pull A",
           exercises: [
             {
-              name: 'Pull-ups',
+              name: "Pull-ups",
               sets: [{ reps: 8, rest_seconds: 180 }],
             },
           ],
@@ -328,16 +328,16 @@ describe('aiPlanSchema', () => {
     expect(() => aiPlanSchema.parse(validData)).not.toThrow();
   });
 
-  it('should reject empty plan name', () => {
+  it("should reject empty plan name", () => {
     const invalidData = {
-      name: '',
-      description: 'Test',
+      name: "",
+      description: "Test",
       schedule: [
         {
-          name: 'Push A',
+          name: "Push A",
           exercises: [
             {
-              name: 'Bench Press',
+              name: "Bench Press",
               sets: [{ reps: 10, rest_seconds: 90 }],
             },
           ],
@@ -349,16 +349,16 @@ describe('aiPlanSchema', () => {
     expect(() => aiPlanSchema.parse(invalidData)).toThrow();
   });
 
-  it('should reject plan name exceeding 100 characters', () => {
+  it("should reject plan name exceeding 100 characters", () => {
     const invalidData = {
-      name: 'a'.repeat(101),
-      description: 'Test',
+      name: "a".repeat(101),
+      description: "Test",
       schedule: [
         {
-          name: 'Push A',
+          name: "Push A",
           exercises: [
             {
-              name: 'Bench Press',
+              name: "Bench Press",
               sets: [{ reps: 10, rest_seconds: 90 }],
             },
           ],
@@ -370,16 +370,16 @@ describe('aiPlanSchema', () => {
     expect(() => aiPlanSchema.parse(invalidData)).toThrow();
   });
 
-  it('should reject empty description', () => {
+  it("should reject empty description", () => {
     const invalidData = {
-      name: 'Test Plan',
-      description: '',
+      name: "Test Plan",
+      description: "",
       schedule: [
         {
-          name: 'Push A',
+          name: "Push A",
           exercises: [
             {
-              name: 'Bench Press',
+              name: "Bench Press",
               sets: [{ reps: 10, rest_seconds: 90 }],
             },
           ],
@@ -391,16 +391,16 @@ describe('aiPlanSchema', () => {
     expect(() => aiPlanSchema.parse(invalidData)).toThrow();
   });
 
-  it('should reject description exceeding 500 characters', () => {
+  it("should reject description exceeding 500 characters", () => {
     const invalidData = {
-      name: 'Test Plan',
-      description: 'a'.repeat(501),
+      name: "Test Plan",
+      description: "a".repeat(501),
       schedule: [
         {
-          name: 'Push A',
+          name: "Push A",
           exercises: [
             {
-              name: 'Bench Press',
+              name: "Bench Press",
               sets: [{ reps: 10, rest_seconds: 90 }],
             },
           ],
@@ -412,10 +412,10 @@ describe('aiPlanSchema', () => {
     expect(() => aiPlanSchema.parse(invalidData)).toThrow();
   });
 
-  it('should reject empty schedule array', () => {
+  it("should reject empty schedule array", () => {
     const invalidData = {
-      name: 'Test Plan',
-      description: 'Test description',
+      name: "Test Plan",
+      description: "Test description",
       schedule: [],
       cycle_duration_weeks: 4,
     };
@@ -423,16 +423,16 @@ describe('aiPlanSchema', () => {
     expect(() => aiPlanSchema.parse(invalidData)).toThrow();
   });
 
-  it('should reject negative cycle_duration_weeks', () => {
+  it("should reject negative cycle_duration_weeks", () => {
     const invalidData = {
-      name: 'Test Plan',
-      description: 'Test description',
+      name: "Test Plan",
+      description: "Test description",
       schedule: [
         {
-          name: 'Push A',
+          name: "Push A",
           exercises: [
             {
-              name: 'Bench Press',
+              name: "Bench Press",
               sets: [{ reps: 10, rest_seconds: 90 }],
             },
           ],
@@ -444,16 +444,16 @@ describe('aiPlanSchema', () => {
     expect(() => aiPlanSchema.parse(invalidData)).toThrow();
   });
 
-  it('should reject zero cycle_duration_weeks', () => {
+  it("should reject zero cycle_duration_weeks", () => {
     const invalidData = {
-      name: 'Test Plan',
-      description: 'Test description',
+      name: "Test Plan",
+      description: "Test description",
       schedule: [
         {
-          name: 'Push A',
+          name: "Push A",
           exercises: [
             {
-              name: 'Bench Press',
+              name: "Bench Press",
               sets: [{ reps: 10, rest_seconds: 90 }],
             },
           ],
@@ -465,16 +465,16 @@ describe('aiPlanSchema', () => {
     expect(() => aiPlanSchema.parse(invalidData)).toThrow();
   });
 
-  it('should reject decimal cycle_duration_weeks', () => {
+  it("should reject decimal cycle_duration_weeks", () => {
     const invalidData = {
-      name: 'Test Plan',
-      description: 'Test description',
+      name: "Test Plan",
+      description: "Test description",
       schedule: [
         {
-          name: 'Push A',
+          name: "Push A",
           exercises: [
             {
-              name: 'Bench Press',
+              name: "Bench Press",
               sets: [{ reps: 10, rest_seconds: 90 }],
             },
           ],
@@ -487,17 +487,17 @@ describe('aiPlanSchema', () => {
   });
 });
 
-describe('aiNextCycleSchema', () => {
-  it('should validate correct next cycle data', () => {
+describe("aiNextCycleSchema", () => {
+  it("should validate correct next cycle data", () => {
     const validData = {
-      name: 'PPL Cycle 2',
-      description: 'Second cycle with increased weights',
+      name: "PPL Cycle 2",
+      description: "Second cycle with increased weights",
       schedule: [
         {
-          name: 'Push A',
+          name: "Push A",
           exercises: [
             {
-              name: 'Bench Press',
+              name: "Bench Press",
               sets: [{ reps: 10, weight: 85, rest_seconds: 90 }],
             },
           ],
@@ -508,26 +508,26 @@ describe('aiNextCycleSchema', () => {
     expect(() => aiNextCycleSchema.parse(validData)).not.toThrow();
   });
 
-  it('should reject empty schedule', () => {
+  it("should reject empty schedule", () => {
     const invalidData = {
-      name: 'PPL Cycle 2',
-      description: 'Second cycle',
+      name: "PPL Cycle 2",
+      description: "Second cycle",
       schedule: [],
     };
 
     expect(() => aiNextCycleSchema.parse(invalidData)).toThrow();
   });
 
-  it('should not have cycle_duration_weeks field', () => {
+  it("should not have cycle_duration_weeks field", () => {
     const dataWithDuration = {
-      name: 'PPL Cycle 2',
-      description: 'Second cycle',
+      name: "PPL Cycle 2",
+      description: "Second cycle",
       schedule: [
         {
-          name: 'Push A',
+          name: "Push A",
           exercises: [
             {
-              name: 'Bench Press',
+              name: "Bench Press",
               sets: [{ reps: 10, rest_seconds: 90 }],
             },
           ],
@@ -538,6 +538,6 @@ describe('aiNextCycleSchema', () => {
 
     // Parse should succeed but the extra field should be stripped
     const result = aiNextCycleSchema.parse(dataWithDuration);
-    expect('cycle_duration_weeks' in result).toBe(false);
+    expect("cycle_duration_weeks" in result).toBe(false);
   });
 });

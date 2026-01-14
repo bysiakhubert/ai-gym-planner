@@ -56,6 +56,22 @@ const reactConfig = tseslint.config({
   },
 });
 
+// Allow console.log in specific files where logging is intentional
+const consoleAllowedConfig = tseslint.config({
+  files: [
+    "e2e/**/*.{ts,js}",
+    "src/components/auth/*.tsx",
+    "src/pages/api/auth/callback.ts",
+    "src/pages/*.astro",
+    "src/pages/session/*.astro",
+    "src/pages/sessions/*.astro",
+    "src/hooks/useActiveSession.ts",
+  ],
+  rules: {
+    "no-console": "off",
+  },
+});
+
 export default tseslint.config(
   includeIgnoreFile(gitignorePath),
   {
@@ -64,6 +80,7 @@ export default tseslint.config(
   baseConfig,
   jsxA11yConfig,
   reactConfig,
+  consoleAllowedConfig,
   eslintPluginAstro.configs["flat/recommended"],
   eslintPluginPrettier
 );

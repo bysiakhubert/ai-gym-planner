@@ -76,7 +76,7 @@ export function useAiPlannerGenerator() {
 
       // Show detailed error message if available
       const errorMessage = apiError.message || "Nie udało się wygenerować planu";
-      toast.error(errorMessage, { 
+      toast.error(errorMessage, {
         id: toastId,
         duration: 5000, // Show longer for validation errors
       });

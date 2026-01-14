@@ -102,11 +102,7 @@ export const sessionService = {
    * @throws {WorkoutAlreadyCompletedError} If workout day is already marked as done
    * @throws {Error} If database operation fails
    */
-  create: async (
-    supabase: SupabaseClient,
-    userId: string,
-    data: CreateSessionRequest
-  ): Promise<SessionResponse> => {
+  create: async (supabase: SupabaseClient, userId: string, data: CreateSessionRequest): Promise<SessionResponse> => {
     // Step 1: Check for existing active session (ended_at IS NULL)
     const { data: activeSession, error: activeCheckError } = await supabase
       .from("training_sessions")
@@ -327,12 +323,7 @@ export const sessionService = {
     // Step 4: Mark workout day as done in the plan
     const sessionData = completedSession.session as unknown as SessionStructure;
     if (completedSession.plan_id) {
-      await sessionService.markWorkoutDayAsDone(
-        supabase,
-        userId,
-        completedSession.plan_id,
-        sessionData.date
-      );
+      await sessionService.markWorkoutDayAsDone(supabase, userId, completedSession.plan_id, sessionData.date);
     }
 
     // Step 5: Log audit event
@@ -482,7 +473,7 @@ export const sessionService = {
     // Transform database results to SessionSummary type
     const sessionSummaries: SessionSummary[] = (sessions ?? []).map((session) => {
       const sessionData = session.session as unknown as SessionStructure;
-      
+
       // Calculate duration in minutes if completed
       let durationMinutes: number | null = null;
       if (session.ended_at) {
@@ -636,8 +627,10 @@ export const sessionService = {
       return; // Don't throw - this is a non-critical operation
     }
 
-    const planData = plan.plan as unknown as { schedule: Record<string, { name: string; exercises: unknown[]; done: boolean }> };
-    
+    const planData = plan.plan as unknown as {
+      schedule: Record<string, { name: string; exercises: unknown[]; done: boolean }>;
+    };
+
     // Check if the date exists in schedule
     if (!planData.schedule || !planData.schedule[date]) {
       // eslint-disable-next-line no-console
@@ -689,7 +682,7 @@ export const sessionService = {
     }
 
     const planData = plan.plan as unknown as { schedule: Record<string, { done?: boolean }> };
-    
+
     return planData.schedule?.[date]?.done === true;
   },
 
@@ -703,11 +696,7 @@ export const sessionService = {
    * @returns Number of sessions closed
    * @throws {Error} If database operation fails
    */
-  closeSessionsForPlan: async (
-    supabase: SupabaseClient,
-    userId: string,
-    planId: string
-  ): Promise<number> => {
+  closeSessionsForPlan: async (supabase: SupabaseClient, userId: string, planId: string): Promise<number> => {
     // Find all active sessions for this plan
     const { data: activeSessions, error: fetchError } = await supabase
       .from("training_sessions")
