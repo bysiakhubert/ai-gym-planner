@@ -1,8 +1,8 @@
 import { defineConfig, devices } from "@playwright/test";
 import path from "path";
-import * as dotenv from "dotenv";
+import dotenv from "dotenv";
 
-// Load environment variables from .env.test
+// Load environment variables from .env.test (optional)
 const envPath = path.resolve(process.cwd(), ".env.test");
 dotenv.config({ path: envPath });
 
