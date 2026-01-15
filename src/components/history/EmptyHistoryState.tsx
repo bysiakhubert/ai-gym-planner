@@ -12,7 +12,8 @@ export function EmptyHistoryState() {
       </div>
       <h2 className="text-2xl font-bold tracking-tight mb-3">Brak historii treningów</h2>
       <p className="text-muted-foreground max-w-md mb-8">
-        Nie masz jeszcze żadnych zakończonych treningów. Rozpocznij swój pierwszy trening, aby zobaczyć tutaj swoją historię.
+        Nie masz jeszcze żadnych zakończonych treningów. Rozpocznij swój pierwszy trening, aby zobaczyć tutaj swoją
+        historię.
       </p>
       <Button size="lg" asChild>
         <a href="/">Przejdź do dashboardu</a>
@@ -20,4 +21,3 @@ export function EmptyHistoryState() {
     </div>
   );
 }
-

@@ -114,10 +114,7 @@ export function LoginForm() {
 
             {/* Forgot Password Link */}
             <div className="flex justify-end">
-              <a
-                href="/forgot-password"
-                className="text-sm text-muted-foreground hover:text-primary transition-colors"
-              >
+              <a href="/forgot-password" className="text-sm text-muted-foreground hover:text-primary transition-colors">
                 Zapomniałeś hasła?
               </a>
             </div>
@@ -140,4 +137,3 @@ export function LoginForm() {
     </Card>
   );
 }
-

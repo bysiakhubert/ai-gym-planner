@@ -211,11 +211,7 @@ export function ContinuePlanDialog({
                   <Popover>
                     <PopoverTrigger asChild>
                       <FormControl>
-                        <Button
-                          variant="outline"
-                          className="w-full pl-3 text-left font-normal"
-                          disabled={isSubmitting}
-                        >
+                        <Button variant="outline" className="w-full pl-3 text-left font-normal" disabled={isSubmitting}>
                           {field.value ? (
                             format(field.value, "d MMMM yyyy", { locale: pl })
                           ) : (
@@ -237,7 +233,8 @@ export function ContinuePlanDialog({
                     </PopoverContent>
                   </Popover>
                   <FormDescription>
-                    Kiedy ma rozpocząć się nowy cykl? (sugerowana: {format(suggestedDate, "d MMMM yyyy", { locale: pl })})
+                    Kiedy ma rozpocząć się nowy cykl? (sugerowana:{" "}
+                    {format(suggestedDate, "d MMMM yyyy", { locale: pl })})
                   </FormDescription>
                   <FormMessage />
                 </FormItem>
@@ -269,4 +266,3 @@ export function ContinuePlanDialog({
     </Dialog>
   );
 }
-

@@ -26,6 +26,7 @@ function CardHeader({ className, ...props }: React.ComponentProps<"div">) {
 }
 
 function CardTitle({ className, ...props }: React.ComponentProps<"h2">) {
+  // eslint-disable-next-line jsx-a11y/heading-has-content
   return <h2 data-slot="card-title" className={cn("leading-none font-semibold", className)} {...props} />;
 }
 

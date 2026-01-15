@@ -1,5 +1,4 @@
-import { vi } from 'vitest';
-import type { z } from 'zod';
+import { vi } from "vitest";
 
 /**
  * Mock OpenRouter Service for testing
@@ -12,7 +11,7 @@ export const mockOpenRouterService = {
 /**
  * Creates a successful AI generation response
  */
-export function createMockAiSuccess<T>(data: T, model = 'google/gemini-2.0-flash-exp:free', fallbackUsed = false) {
+export function createMockAiSuccess<T>(data: T, model = "google/gemini-2.0-flash-exp:free", fallbackUsed = false) {
   return {
     data,
     model,

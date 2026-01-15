@@ -15,13 +15,7 @@ export interface SessionFooterProps {
  * Shows progress and action buttons for finishing or canceling the workout
  * Optimized for mobile with larger touch targets
  */
-export function SessionFooter({
-  completedSets,
-  totalSets,
-  onFinish,
-  onCancel,
-  hasTimerActive,
-}: SessionFooterProps) {
+export function SessionFooter({ completedSets, totalSets, onFinish, onCancel, hasTimerActive }: SessionFooterProps) {
   const progressPercent = totalSets > 0 ? Math.round((completedSets / totalSets) * 100) : 0;
   const isFullyCompleted = completedSets === totalSets && totalSets > 0;
 

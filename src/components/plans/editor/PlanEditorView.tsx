@@ -164,9 +164,9 @@ export function PlanEditorView({ planId }: PlanEditorViewProps) {
           const today = new Date();
           const nextWeek = new Date(today);
           nextWeek.setDate(today.getDate() + 7);
-          
+
           const defaultDate = today.toISOString().split("T")[0];
-          
+
           form.reset({
             name: "",
             effective_from: defaultDate,
@@ -200,6 +200,7 @@ export function PlanEditorView({ planId }: PlanEditorViewProps) {
       const result = await savePlan(planId ?? null, values);
       if (result) {
         // Redirect to plan details after successful save
+        // eslint-disable-next-line react-compiler/react-compiler
         window.location.href = `/plans/${result.id}`;
       }
     },
@@ -309,11 +310,11 @@ export function PlanEditorView({ planId }: PlanEditorViewProps) {
                   {mode === "create" ? "Edytuj nowy plan" : mode === "manual" ? "Nowy plan treningowy" : "Edytuj plan"}
                 </h1>
                 <p className="text-sm text-muted-foreground">
-                  {mode === "create" 
-                    ? "Dostosuj wygenerowany plan przed zapisaniem" 
-                    : mode === "manual" 
-                    ? "Stwórz plan treningowy od podstaw"
-                    : "Modyfikuj harmonogram treningowy"}
+                  {mode === "create"
+                    ? "Dostosuj wygenerowany plan przed zapisaniem"
+                    : mode === "manual"
+                      ? "Stwórz plan treningowy od podstaw"
+                      : "Modyfikuj harmonogram treningowy"}
                 </p>
               </div>
             </div>
@@ -484,13 +485,16 @@ export function PlanEditorView({ planId }: PlanEditorViewProps) {
           <AlertDialogHeader>
             <AlertDialogTitle>Niezapisane zmiany</AlertDialogTitle>
             <AlertDialogDescription>
-              Masz niezapisane zmiany w planie treningowym. Czy na pewno chcesz opuścić stronę? Wszystkie zmiany
-              zostaną utracone.
+              Masz niezapisane zmiany w planie treningowym. Czy na pewno chcesz opuścić stronę? Wszystkie zmiany zostaną
+              utracone.
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
             <AlertDialogCancel>Pozostań</AlertDialogCancel>
-            <AlertDialogAction onClick={confirmCancel} className="bg-destructive text-destructive-foreground hover:bg-destructive/90">
+            <AlertDialogAction
+              onClick={confirmCancel}
+              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+            >
               Opuść bez zapisywania
             </AlertDialogAction>
           </AlertDialogFooter>

@@ -1,5 +1,5 @@
-import { Page, Locator, expect } from '@playwright/test';
-import { BasePage } from './BasePage';
+import { Page, Locator, expect } from "@playwright/test";
+import { BasePage } from "./BasePage";
 
 /**
  * Page Object for Plans List page
@@ -14,23 +14,26 @@ export class PlansListPage extends BasePage {
   constructor(page: Page) {
     super(page);
     // Page has h1 with "Moje plany" in PageHeader component
-    this.pageTitle = page.locator('h1').filter({ hasText: /moje plany/i }).first();
+    this.pageTitle = page
+      .locator("h1")
+      .filter({ hasText: /moje plany/i })
+      .first();
     this.planCards = page.locator('[data-testid="plan-card"]');
     // NewPlanButton is a dropdown trigger button, not a link
     // Scope to main to avoid conflict with navigation button
-    this.newPlanButton = page.getByRole('main').getByRole('button', { name: /nowy plan/i });
-    this.emptyState = page.getByTestId('empty-plans');
-    this.confirmDialog = page.getByRole('alertdialog');
+    this.newPlanButton = page.getByRole("main").getByRole("button", { name: /nowy plan/i });
+    this.emptyState = page.getByTestId("empty-plans");
+    this.confirmDialog = page.getByRole("alertdialog");
   }
 
   /**
    * Navigate to plans list page
    */
   async goto() {
-    await super.goto('/plans');
+    await super.goto("/plans");
     await this.waitForHydration();
     // Wait for page content to be visible
-    await this.page.waitForLoadState('networkidle');
+    await this.page.waitForLoadState("networkidle");
   }
 
   /**
@@ -52,7 +55,7 @@ export class PlansListPage extends BasePage {
    */
   async editPlan(index: number) {
     const card = this.getPlanCard(index);
-    await card.getByRole('link', { name: /edytuj/i }).click();
+    await card.getByRole("link", { name: /edytuj/i }).click();
     await this.page.waitForURL(/\/plans\/[a-z0-9-]+\/edit/);
   }
 
@@ -61,21 +64,21 @@ export class PlansListPage extends BasePage {
    */
   async archivePlan(index: number) {
     const card = this.getPlanCard(index);
-    await card.getByRole('button', { name: /usuń|archiwizuj/i }).click();
+    await card.getByRole("button", { name: /usuń|archiwizuj/i }).click();
   }
 
   /**
    * Confirm archive in dialog
    */
   async confirmArchive() {
-    await this.confirmDialog.getByRole('button', { name: /potwierdź|tak|usuń/i }).click();
+    await this.confirmDialog.getByRole("button", { name: /potwierdź|tak|usuń/i }).click();
   }
 
   /**
    * Cancel archive in dialog
    */
   async cancelArchive() {
-    await this.confirmDialog.getByRole('button', { name: /anuluj|nie/i }).click();
+    await this.confirmDialog.getByRole("button", { name: /anuluj|nie/i }).click();
   }
 
   /**
@@ -84,7 +87,10 @@ export class PlansListPage extends BasePage {
   async createNewPlan() {
     await this.newPlanButton.click();
     // Click on "Generuj przez AI" option in dropdown
-    await this.page.getByRole('menuitem').filter({ hasText: /generuj przez ai/i }).click();
+    await this.page
+      .getByRole("menuitem")
+      .filter({ hasText: /generuj przez ai/i })
+      .click();
   }
 
   /**
@@ -108,5 +114,3 @@ export class PlansListPage extends BasePage {
     await expect(this.planCards.first()).toBeVisible();
   }
 }
-
-

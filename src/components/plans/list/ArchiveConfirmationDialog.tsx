@@ -37,7 +37,8 @@ export function ArchiveConfirmationDialog({
         <AlertDialogHeader>
           <AlertDialogTitle>Archiwizuj plan</AlertDialogTitle>
           <AlertDialogDescription>
-            Czy na pewno chcesz zarchiwizować plan <span className="font-medium text-foreground">„{planName}"</span>?
+            Czy na pewno chcesz zarchiwizować plan{" "}
+            <span className="font-medium text-foreground">&ldquo;{planName}&rdquo;</span>?
             <br />
             <br />
             Zarchiwizowane plany nie będą widoczne na liście, ale zachowasz do nich dostęp w archiwum.

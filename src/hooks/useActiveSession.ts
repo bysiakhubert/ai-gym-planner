@@ -1,3 +1,4 @@
+/* eslint-disable react-compiler/react-compiler */
 import { useState, useEffect, useCallback, useRef } from "react";
 import type { SessionResponse, SessionStructure, SessionSet } from "@/types";
 import { updateSession, completeSession } from "@/lib/api/sessions";
@@ -43,12 +44,7 @@ export interface UseActiveSessionReturn {
   lastSavedAt: Date | null;
   isCompleting: boolean;
   stats: CompletionStats;
-  updateSet: (
-    exerciseIdx: number,
-    setIdx: number,
-    field: keyof SessionSet,
-    value: number | boolean | null
-  ) => void;
+  updateSet: (exerciseIdx: number, setIdx: number, field: keyof SessionSet, value: number | boolean | null) => void;
   handleComplete: () => Promise<void>;
   handleCancel: () => void;
   forceSave: () => Promise<void>;
@@ -63,9 +59,7 @@ export interface UseActiveSessionReturn {
  */
 export function useActiveSession(initialSession: SessionResponse | null): UseActiveSessionReturn {
   // Session state
-  const [sessionData, setSessionData] = useState<SessionStructure | null>(
-    initialSession?.session ?? null
-  );
+  const [sessionData, setSessionData] = useState<SessionStructure | null>(initialSession?.session ?? null);
   const [sessionId] = useState<string | null>(initialSession?.id ?? null);
   const [isDirty, setIsDirty] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
@@ -81,7 +75,7 @@ export function useActiveSession(initialSession: SessionResponse | null): UseAct
   useEffect(() => {
     // Clean up any old session data from localStorage
     const keysToRemove: string[] = [];
-    
+
     for (let i = 0; i < localStorage.length; i++) {
       const key = localStorage.key(i);
       if (key && key.startsWith(STORAGE_KEY_PREFIX)) {
@@ -95,7 +89,8 @@ export function useActiveSession(initialSession: SessionResponse | null): UseAct
 
     // Remove old session data
     keysToRemove.forEach((key) => localStorage.removeItem(key));
-  }, []); // Run only once on mount
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []); // Run only once on mount, sessionId used for filtering
 
   /**
    * Load session from localStorage if available, valid, and newer
@@ -290,9 +285,7 @@ export function useActiveSession(initialSession: SessionResponse | null): UseAct
    * Handle cancel session
    */
   const handleCancel = useCallback(() => {
-    const confirmCancel = window.confirm(
-      "Czy na pewno chcesz anulować trening? Twój postęp zostanie utracony."
-    );
+    const confirmCancel = window.confirm("Czy na pewno chcesz anulować trening? Twój postęp zostanie utracony.");
 
     if (confirmCancel && sessionId) {
       const storageKey = `${STORAGE_KEY_PREFIX}${sessionId}`;
@@ -338,4 +331,3 @@ export function useActiveSession(initialSession: SessionResponse | null): UseAct
     forceSave,
   };
 }
-

@@ -1,5 +1,5 @@
-import { Page, Locator, expect } from '@playwright/test';
-import { BasePage } from './BasePage';
+import { Page, Locator, expect } from "@playwright/test";
+import { BasePage } from "./BasePage";
 
 /**
  * Page Object for AI Plan Generator page
@@ -38,26 +38,26 @@ export class PlanGeneratorPage extends BasePage {
     this.notesTextarea = page.getByLabel(/dodatkowe uwagi/i);
 
     // Buttons - button text is "Generuj plan"
-    this.generateButton = page.getByRole('button', { name: /generuj plan/i });
-    this.acceptButton = page.getByRole('button', { name: /zaakceptuj|zapisz|zatwierdź/i });
-    this.rejectButton = page.getByRole('button', { name: /odrzuć|anuluj/i });
+    this.generateButton = page.getByRole("button", { name: /generuj plan/i });
+    this.acceptButton = page.getByRole("button", { name: /zaakceptuj|zapisz|zatwierdź/i });
+    this.rejectButton = page.getByRole("button", { name: /odrzuć|anuluj/i });
 
     // States
-    this.loadingIndicator = page.locator('.animate-spin').first();
-    this.generatedPlanPreview = page.getByTestId('plan-preview');
-    this.errorMessage = page.getByRole('alert');
-    this.safetyDisclaimer = page.getByTestId('safety-disclaimer');
-    this.formContainer = page.locator('form');
+    this.loadingIndicator = page.locator(".animate-spin").first();
+    this.generatedPlanPreview = page.getByTestId("plan-preview");
+    this.errorMessage = page.getByRole("alert");
+    this.safetyDisclaimer = page.getByTestId("safety-disclaimer");
+    this.formContainer = page.locator("form");
   }
 
   /**
    * Navigate to generator page
    */
   async goto() {
-    await super.goto('/generate');
+    await super.goto("/generate");
     await this.waitForHydration();
     // Wait for form to be fully loaded
-    await this.page.waitForLoadState('networkidle');
+    await this.page.waitForLoadState("networkidle");
   }
 
   /**
@@ -75,12 +75,12 @@ export class PlanGeneratorPage extends BasePage {
     // Shadcn Select components - click trigger then select option
     if (options.goal) {
       await this.goalSelect.click();
-      await this.page.getByRole('option', { name: new RegExp(options.goal, 'i') }).click();
+      await this.page.getByRole("option", { name: new RegExp(options.goal, "i") }).click();
     }
 
     if (options.system) {
       await this.systemSelect.click();
-      await this.page.getByRole('option', { name: new RegExp(options.system, 'i') }).click();
+      await this.page.getByRole("option", { name: new RegExp(options.system, "i") }).click();
     }
 
     if (options.days) {
@@ -94,20 +94,20 @@ export class PlanGeneratorPage extends BasePage {
     if (options.sessionDuration !== undefined) {
       // Find the actual hidden input and set its value
       const sessionSlider = this.page.locator('input[name="session_duration_minutes"]');
-      if (await sessionSlider.count() > 0) {
+      if ((await sessionSlider.count()) > 0) {
         await sessionSlider.evaluate((el: HTMLInputElement, value) => {
           el.value = String(value);
-          el.dispatchEvent(new Event('input', { bubbles: true }));
+          el.dispatchEvent(new Event("input", { bubbles: true }));
         }, options.sessionDuration);
       }
     }
 
     if (options.cycleDuration !== undefined) {
       const cycleSlider = this.page.locator('input[name="cycle_duration_weeks"]');
-      if (await cycleSlider.count() > 0) {
+      if ((await cycleSlider.count()) > 0) {
         await cycleSlider.evaluate((el: HTMLInputElement, value) => {
           el.value = String(value);
-          el.dispatchEvent(new Event('input', { bubbles: true }));
+          el.dispatchEvent(new Event("input", { bubbles: true }));
         }, options.cycleDuration);
       }
     }
@@ -127,7 +127,7 @@ export class PlanGeneratorPage extends BasePage {
   /**
    * Wait for AI generation to complete
    */
-  async waitForGeneration(timeout: number = 60000) {
+  async waitForGeneration(timeout = 60000) {
     // Wait for loading indicator to appear
     await expect(this.loadingIndicator).toBeVisible({ timeout: 5000 });
     // Wait for loading indicator to disappear
@@ -174,5 +174,3 @@ export class PlanGeneratorPage extends BasePage {
     }
   }
 }
-
-

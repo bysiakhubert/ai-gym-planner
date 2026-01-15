@@ -2,10 +2,10 @@
 import Layout from "@/layouts/Layout.astro";
 import type { SessionStructure, SessionSet } from "@/types";
 import { planService, PlanNotFoundError } from "@/lib/services/planService";
-import { 
-  sessionService, 
-  ActiveSessionConflictError, 
-  WorkoutAlreadyCompletedError 
+import {
+  sessionService,
+  ActiveSessionConflictError,
+  WorkoutAlreadyCompletedError,
 } from "@/lib/services/sessionService";
 
 export const prerender = false;
@@ -53,14 +53,16 @@ try {
     date: date,
     exercises: workoutDay.exercises.map((exercise) => ({
       name: exercise.name,
-      sets: exercise.sets.map((set): SessionSet => ({
-        planned_reps: set.reps,
-        planned_weight: set.weight,
-        actual_reps: null,
-        actual_weight: null,
-        rest_seconds: set.rest_seconds,
-        completed: false,
-      })),
+      sets: exercise.sets.map(
+        (set): SessionSet => ({
+          planned_reps: set.reps,
+          planned_weight: set.weight,
+          actual_reps: null,
+          actual_weight: null,
+          rest_seconds: set.rest_seconds,
+          completed: false,
+        })
+      ),
     })),
   };
 

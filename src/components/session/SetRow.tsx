@@ -72,9 +72,7 @@ export function SetRow({ set, setIndex, onUpdate, onStartRest }: SetRowProps) {
       )}
     >
       {/* Set Number */}
-      <span className="text-center text-sm font-semibold text-muted-foreground">
-        {setIndex + 1}
-      </span>
+      <span className="text-center text-sm font-semibold text-muted-foreground">{setIndex + 1}</span>
 
       {/* Weight Input */}
       <div className="relative">

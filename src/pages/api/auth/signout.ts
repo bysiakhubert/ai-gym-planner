@@ -10,7 +10,7 @@ export const prerender = false;
  * @returns 200 OK with { success: true, redirectTo: string } on successful signout
  * @returns 500 Internal Server Error for unexpected errors
  */
-export const POST: APIRoute = async ({ locals, redirect }) => {
+export const POST: APIRoute = async ({ locals }) => {
   const { supabase } = locals;
 
   try {
@@ -42,7 +42,7 @@ export const POST: APIRoute = async ({ locals, redirect }) => {
       {
         status: 200,
         headers: { "Content-Type": "application/json" },
-      },
+      }
     );
   } catch (error) {
     // eslint-disable-next-line no-console
@@ -59,6 +59,3 @@ export const POST: APIRoute = async ({ locals, redirect }) => {
     });
   }
 };
-
-
-

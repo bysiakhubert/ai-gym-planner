@@ -1,5 +1,5 @@
-import { Page, Locator, expect } from '@playwright/test';
-import { BasePage } from './BasePage';
+import { Page, Locator, expect } from "@playwright/test";
+import { BasePage } from "./BasePage";
 
 /**
  * Page Object for Dashboard page (main page after login)
@@ -16,25 +16,25 @@ export class DashboardPage extends BasePage {
   constructor(page: Page) {
     super(page);
     // DashboardView always shows "Witaj z powrotem!" in the main h1 header
-    this.welcomeMessage = page.locator('h1').filter({ hasText: /witaj z powrotem/i });
-    this.upcomingWorkouts = page.getByTestId('upcoming-workouts');
+    this.welcomeMessage = page.locator("h1").filter({ hasText: /witaj z powrotem/i });
+    this.upcomingWorkouts = page.getByTestId("upcoming-workouts");
     // Start button is inside workout cards, specific to each card
     // We remove the global selector to avoid strict mode violations
     // NewPlanButton is a dropdown trigger, not a link
-    this.newPlanButton = page.getByRole('button', { name: /nowy plan/i });
-    this.emptyState = page.getByTestId('empty-dashboard');
+    this.newPlanButton = page.getByRole("button", { name: /nowy plan/i });
+    this.emptyState = page.getByTestId("empty-dashboard");
     this.workoutCards = page.locator('[data-testid="workout-card"]');
     // LogoutButton has aria-label="Wyloguj się"
-    this.logoutButton = page.getByRole('button', { name: /wyloguj/i });
+    this.logoutButton = page.getByRole("button", { name: /wyloguj/i });
   }
 
   /**
    * Navigate to dashboard
    */
   async goto() {
-    await super.goto('/');
+    await super.goto("/");
     await this.waitForHydration();
-    await this.page.waitForLoadState('networkidle');
+    await this.page.waitForLoadState("networkidle");
   }
 
   /**
@@ -65,7 +65,10 @@ export class DashboardPage extends BasePage {
    * Start the first available workout
    */
   async startFirstWorkout() {
-    await this.workoutCards.first().getByRole('button', { name: /rozpocznij/i }).click();
+    await this.workoutCards
+      .first()
+      .getByRole("button", { name: /rozpocznij/i })
+      .click();
   }
 
   /**
@@ -74,7 +77,7 @@ export class DashboardPage extends BasePage {
   async navigateToPlans() {
     // Use href attribute for more reliable navigation
     await this.page.click('a[href="/plans"]');
-    await this.page.waitForURL('**/plans');
+    await this.page.waitForURL("**/plans");
   }
 
   /**
@@ -83,15 +86,15 @@ export class DashboardPage extends BasePage {
   async navigateToHistory() {
     // Use href attribute for more reliable navigation
     await this.page.click('a[href="/history"]');
-    await this.page.waitForURL('**/history');
+    await this.page.waitForURL("**/history");
   }
 
   /**
    * Navigate to plan generator
    */
   async navigateToGenerator() {
-    await this.navigation.getByRole('link', { name: /generator/i }).click();
-    await this.page.waitForURL('**/generate');
+    await this.navigation.getByRole("link", { name: /generator/i }).click();
+    await this.page.waitForURL("**/generate");
   }
 
   /**
@@ -99,8 +102,6 @@ export class DashboardPage extends BasePage {
    */
   async logout() {
     await this.logoutButton.click();
-    await this.page.waitForURL('**/login');
+    await this.page.waitForURL("**/login");
   }
 }
-
-

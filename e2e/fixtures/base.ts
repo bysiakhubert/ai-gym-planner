@@ -1,17 +1,17 @@
-import { test as base, expect } from '@playwright/test';
-import { LoginPage } from '../page-objects/LoginPage';
-import { RegisterPage } from '../page-objects/RegisterPage';
-import { DashboardPage } from '../page-objects/DashboardPage';
-import { PlanGeneratorPage } from '../page-objects/PlanGeneratorPage';
-import { PlansListPage } from '../page-objects/PlansListPage';
-import { ActiveSessionPage } from '../page-objects/ActiveSessionPage';
-import { HistoryPage } from '../page-objects/HistoryPage';
-import { cleanupTestData } from '../helpers/database-cleanup';
+import { test as base, expect } from "@playwright/test";
+import { LoginPage } from "../page-objects/LoginPage";
+import { RegisterPage } from "../page-objects/RegisterPage";
+import { DashboardPage } from "../page-objects/DashboardPage";
+import { PlanGeneratorPage } from "../page-objects/PlanGeneratorPage";
+import { PlansListPage } from "../page-objects/PlansListPage";
+import { ActiveSessionPage } from "../page-objects/ActiveSessionPage";
+import { HistoryPage } from "../page-objects/HistoryPage";
+import { cleanupTestData } from "../helpers/database-cleanup";
 
 /**
  * Custom fixtures types for E2E tests
  */
-type CustomFixtures = {
+interface CustomFixtures {
   loginPage: LoginPage;
   registerPage: RegisterPage;
   dashboardPage: DashboardPage;
@@ -19,21 +19,22 @@ type CustomFixtures = {
   plansListPage: PlansListPage;
   activeSessionPage: ActiveSessionPage;
   historyPage: HistoryPage;
-};
+}
 
 /**
  * Extended Playwright test with custom Page Object fixtures
  * Includes automatic database cleanup after each test
  */
+/* eslint-disable react-hooks/rules-of-hooks */
 export const test = base.extend<CustomFixtures>({
   // Auto-cleanup fixture - runs AFTER each test to clean up
   page: async ({ page }, use) => {
     // Run the test
     await use(page);
-    
+
     // Cleanup AFTER test completes
     // Only cleanup for authenticated tests to avoid issues with unauthenticated tests
-    const isAuthenticatedTest = page.url().includes('localhost');
+    const isAuthenticatedTest = page.url().includes("localhost");
     if (isAuthenticatedTest) {
       await cleanupTestData();
     }
@@ -67,5 +68,6 @@ export const test = base.extend<CustomFixtures>({
     await use(new HistoryPage(page));
   },
 });
+/* eslint-enable react-hooks/rules-of-hooks */
 
 export { expect };

@@ -44,17 +44,8 @@ function ErrorAlert({ message }: { message: string }) {
  */
 export function ActiveSessionView({ initialSession, error }: ActiveSessionViewProps) {
   // Session state from custom hook
-  const {
-    sessionData,
-    isDirty,
-    isSaving,
-    lastSavedAt,
-    isCompleting,
-    stats,
-    updateSet,
-    handleComplete,
-    handleCancel,
-  } = useActiveSession(initialSession);
+  const { sessionData, isSaving, lastSavedAt, isCompleting, stats, updateSet, handleComplete, handleCancel } =
+    useActiveSession(initialSession);
 
   // Timer state from custom hook
   const { timerState, startTimer, pauseTimer, resumeTimer, addTime, skipTimer } = useWorkoutTimer();

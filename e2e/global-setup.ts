@@ -46,7 +46,7 @@ async function globalSetup(config: FullConfig) {
 
   console.log("✅ Environment variables loaded");
   console.log(`   E2E_USERNAME: ${process.env.E2E_USERNAME}`);
-  console.log(`   E2E_USERNAME_ID: ${process.env.E2E_USERNAME_ID || 'not set'}`);
+  console.log(`   E2E_USERNAME_ID: ${process.env.E2E_USERNAME_ID || "not set"}`);
 
   // Verify database connection
   console.log("🗄️  Checking database connection...");
@@ -72,7 +72,7 @@ async function globalSetup(config: FullConfig) {
     } else {
       console.warn(`⚠️ Server responded with status: ${response?.status()}`);
     }
-  } catch (error) {
+  } catch {
     console.warn("⚠️ Could not connect to server (it may start automatically via webServer config)");
   } finally {
     await browser.close();

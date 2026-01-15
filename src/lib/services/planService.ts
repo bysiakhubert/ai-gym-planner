@@ -43,32 +43,32 @@ export class PlanNotFoundError extends Error {
  * @returns A new plan structure with shifted dates
  */
 function shiftPlanDates(planStructure: PlanStructure, daysOffset: number): PlanStructure {
-  const newSchedule: Record<string, typeof planStructure.schedule[string]> = {};
+  const newSchedule: Record<string, (typeof planStructure.schedule)[string]> = {};
 
   for (const [dateKey, workoutDay] of Object.entries(planStructure.schedule)) {
     // Parse the original date
     const originalDate = new Date(dateKey);
-    
+
     // Add the offset in days
     const shiftedDate = new Date(originalDate);
     shiftedDate.setDate(shiftedDate.getDate() + daysOffset);
-    
+
     // Format as YYYY-MM-DD
-    const newDateKey = shiftedDate.toISOString().split('T')[0];
-    
+    const newDateKey = shiftedDate.toISOString().split("T")[0];
+
     // Deep copy the workout day to avoid mutation
     newSchedule[newDateKey] = {
       ...workoutDay,
       done: false, // Reset done status for new plan
-      exercises: workoutDay.exercises.map(exercise => ({
+      exercises: workoutDay.exercises.map((exercise) => ({
         ...exercise,
-        sets: exercise.sets.map(set => ({ ...set }))
-      }))
+        sets: exercise.sets.map((set) => ({ ...set })),
+      })),
     };
   }
 
   return {
-    schedule: newSchedule
+    schedule: newSchedule,
   };
 }
 

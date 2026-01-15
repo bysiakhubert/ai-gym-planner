@@ -13,7 +13,6 @@ import {
   AlertCircle,
   RefreshCw,
   Dumbbell,
-  Weight,
   TrendingUp,
   TrendingDown,
   Minus,
@@ -216,7 +215,10 @@ function ExerciseDetailCard({ exercise }: { exercise: SessionExercise }) {
             <Dumbbell className="size-5 text-primary" />
             <CardTitle className="text-lg">{exercise.name}</CardTitle>
           </div>
-          <Badge variant={isFullyCompleted ? "default" : "secondary"} className={isFullyCompleted ? "bg-green-600" : ""}>
+          <Badge
+            variant={isFullyCompleted ? "default" : "secondary"}
+            className={isFullyCompleted ? "bg-green-600" : ""}
+          >
             {completedSets}/{totalSets} serii
           </Badge>
         </div>
@@ -322,9 +324,9 @@ export function SessionDetailsView({ sessionId }: SessionDetailsViewProps) {
               <span>Data</span>
             </div>
             <div className="font-semibold">{formatDate(sessionData.date)}</div>
-            {isCompleted && (
+            {isCompleted && ended_at && (
               <div className="text-sm text-muted-foreground">
-                {formatTime(started_at)} – {formatTime(ended_at!)}
+                {formatTime(started_at)} – {formatTime(ended_at)}
               </div>
             )}
           </CardContent>
@@ -347,10 +349,10 @@ export function SessionDetailsView({ sessionId }: SessionDetailsViewProps) {
               <span>Ukończone serie</span>
             </div>
             <div className="flex items-baseline gap-2">
-              <span className="text-2xl font-bold">{completedSets}/{totalSets}</span>
-              {completionRate === 100 && (
-                <Badge className="bg-green-600">100%</Badge>
-              )}
+              <span className="text-2xl font-bold">
+                {completedSets}/{totalSets}
+              </span>
+              {completionRate === 100 && <Badge className="bg-green-600">100%</Badge>}
             </div>
           </CardContent>
         </Card>
@@ -358,9 +360,7 @@ export function SessionDetailsView({ sessionId }: SessionDetailsViewProps) {
 
       {/* Exercises */}
       <div className="space-y-4">
-        <h2 className="text-xl font-semibold">
-          Ćwiczenia ({sessionData.exercises.length})
-        </h2>
+        <h2 className="text-xl font-semibold">Ćwiczenia ({sessionData.exercises.length})</h2>
 
         {sessionData.exercises.map((exercise, idx) => (
           <ExerciseDetailCard key={idx} exercise={exercise} />
@@ -389,4 +389,3 @@ export function SessionDetailsView({ sessionId }: SessionDetailsViewProps) {
     </div>
   );
 }
-

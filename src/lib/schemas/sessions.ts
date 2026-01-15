@@ -93,4 +93,3 @@ export const ListSessionsQueryParamsSchema = z.object({
 export const SessionIdParamSchema = z.object({
   id: z.string().uuid("Session ID must be a valid UUID"),
 });
-

@@ -128,9 +128,7 @@ export function RegisterForm() {
                       {...field}
                     />
                   </FormControl>
-                  <FormDescription>
-                    Minimum 8 znaków, w tym wielka litera, mała litera i cyfra
-                  </FormDescription>
+                  <FormDescription>Minimum 8 znaków, w tym wielka litera, mała litera i cyfra</FormDescription>
                   <FormMessage />
                 </FormItem>
               )}
@@ -196,4 +194,3 @@ export function RegisterForm() {
     </Card>
   );
 }
-

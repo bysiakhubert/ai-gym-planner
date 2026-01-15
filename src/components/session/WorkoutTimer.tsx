@@ -88,9 +88,7 @@ export function WorkoutTimer({
               <div className="flex flex-col">
                 <span className="text-sm font-medium text-muted-foreground">Przerwa</span>
                 {isFinished && (
-                  <span className="text-xs text-green-600 dark:text-green-400 font-medium">
-                    Zakończona!
-                  </span>
+                  <span className="text-xs text-green-600 dark:text-green-400 font-medium">Zakończona!</span>
                 )}
               </div>
             </div>

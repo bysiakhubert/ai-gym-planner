@@ -25,18 +25,18 @@ function formatSessionDate(dateString: string): string {
  */
 function formatDuration(minutes: number | null): string {
   if (minutes === null) return "—";
-  
+
   if (minutes < 60) {
     return `${minutes} min`;
   }
-  
+
   const hours = Math.floor(minutes / 60);
   const remainingMinutes = minutes % 60;
-  
+
   if (remainingMinutes === 0) {
     return `${hours}h`;
   }
-  
+
   return `${hours}h ${remainingMinutes} min`;
 }
 
@@ -46,7 +46,7 @@ function formatDuration(minutes: number | null): string {
  */
 export function HistorySessionCard({ session }: HistorySessionCardProps) {
   const { id, plan_name, day_name, date, duration_minutes, completed_sets, total_sets } = session;
-  
+
   const formattedDate = formatSessionDate(date);
   const formattedDuration = formatDuration(duration_minutes);
   const completionRate = total_sets > 0 ? Math.round((completed_sets / total_sets) * 100) : 0;
@@ -87,4 +87,3 @@ export function HistorySessionCard({ session }: HistorySessionCardProps) {
     </a>
   );
 }
-

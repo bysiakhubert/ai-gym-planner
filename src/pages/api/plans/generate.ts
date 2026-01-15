@@ -79,16 +79,17 @@ export const POST: APIRoute = async ({ request, locals }) => {
     const errorMessages: string[] = [];
 
     // Extract all field error messages
-    for (const [field, messages] of Object.entries(fieldErrors)) {
+    for (const [, messages] of Object.entries(fieldErrors)) {
       if (messages && messages.length > 0) {
         errorMessages.push(...messages);
       }
     }
 
     // Create a user-friendly message
-    const mainMessage = errorMessages.length > 0 
-      ? errorMessages.join(". ") 
-      : "Nieprawidłowe dane formularza. Sprawdź wszystkie pola i spróbuj ponownie.";
+    const mainMessage =
+      errorMessages.length > 0
+        ? errorMessages.join(". ")
+        : "Nieprawidłowe dane formularza. Sprawdź wszystkie pola i spróbuj ponownie.";
 
     return new Response(
       JSON.stringify({

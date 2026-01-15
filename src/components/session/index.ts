@@ -5,4 +5,3 @@ export { SetRow } from "./SetRow";
 export { SessionFooter } from "./SessionFooter";
 export { WorkoutTimer } from "./WorkoutTimer";
 export { CompletionDialog } from "./CompletionDialog";
-

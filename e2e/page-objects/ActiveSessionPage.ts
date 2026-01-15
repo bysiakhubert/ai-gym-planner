@@ -1,5 +1,5 @@
-import { Page, Locator, expect } from '@playwright/test';
-import { BasePage } from './BasePage';
+import { Page, Locator, expect } from "@playwright/test";
+import { BasePage } from "./BasePage";
 
 /**
  * Page Object for Active Session page
@@ -18,23 +18,23 @@ export class ActiveSessionPage extends BasePage {
 
   constructor(page: Page) {
     super(page);
-    this.planName = page.getByTestId('session-plan-name');
-    this.dayName = page.getByTestId('session-day-name');
-    this.exercisesList = page.getByTestId('exercises-list');
+    this.planName = page.getByTestId("session-plan-name");
+    this.dayName = page.getByTestId("session-day-name");
+    this.exercisesList = page.getByTestId("exercises-list");
     this.exerciseCards = page.locator('[data-testid="exercise-card"]');
-    this.timerDisplay = page.getByTestId('timer-display');
-    this.timerStartButton = page.getByRole('button', { name: /start|rozpocznij.*timer/i });
-    this.timerResetButton = page.getByRole('button', { name: /reset|resetuj/i });
+    this.timerDisplay = page.getByTestId("timer-display");
+    this.timerStartButton = page.getByRole("button", { name: /start|rozpocznij.*timer/i });
+    this.timerResetButton = page.getByRole("button", { name: /reset|resetuj/i });
     this.setCheckboxes = page.locator('[data-testid="set-checkbox"]');
-    this.finishWorkoutButton = page.getByRole('button', { name: /zakończ trening/i });
-    this.confirmDialog = page.getByRole('alertdialog');
+    this.finishWorkoutButton = page.getByRole("button", { name: /zakończ trening/i });
+    this.confirmDialog = page.getByRole("alertdialog");
   }
 
   /**
    * Navigate to active session page
    */
   async goto() {
-    await super.goto('/session/active');
+    await super.goto("/session/active");
     await this.waitForHydration();
   }
 
@@ -94,14 +94,14 @@ export class ActiveSessionPage extends BasePage {
    * Confirm finishing the workout
    */
   async confirmFinish() {
-    await this.confirmDialog.getByRole('button', { name: /potwierdź|tak|zakończ/i }).click();
+    await this.confirmDialog.getByRole("button", { name: /potwierdź|tak|zakończ/i }).click();
   }
 
   /**
    * Cancel finishing the workout
    */
   async cancelFinish() {
-    await this.confirmDialog.getByRole('button', { name: /anuluj|nie/i }).click();
+    await this.confirmDialog.getByRole("button", { name: /anuluj|nie/i }).click();
   }
 
   /**
@@ -118,6 +118,3 @@ export class ActiveSessionPage extends BasePage {
     await expect(this.confirmDialog).toBeVisible();
   }
 }
-
-
-

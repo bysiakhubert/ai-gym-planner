@@ -25,15 +25,10 @@ export function ExerciseCard({ exercise, exerciseIndex, onUpdateSet, onStartRest
     <Card className={cn(isFullyCompleted && "border-green-200 dark:border-green-800")}>
       <CardHeader className="pb-2 sm:pb-3">
         <div className="flex items-center justify-between gap-2">
-          <CardTitle className="text-base sm:text-lg font-semibold leading-tight">
-            {exercise.name}
-          </CardTitle>
+          <CardTitle className="text-base sm:text-lg font-semibold leading-tight">{exercise.name}</CardTitle>
           <Badge
             variant={isFullyCompleted ? "default" : "secondary"}
-            className={cn(
-              "shrink-0 tabular-nums",
-              isFullyCompleted && "bg-green-600 hover:bg-green-600"
-            )}
+            className={cn("shrink-0 tabular-nums", isFullyCompleted && "bg-green-600 hover:bg-green-600")}
           >
             {completedSets}/{totalSets}
           </Badge>
@@ -46,12 +41,10 @@ export function ExerciseCard({ exercise, exerciseIndex, onUpdateSet, onStartRest
           <span className="text-center">Ciężar (kg)</span>
           <span className="text-center">Powtórzenia</span>
           <span className="text-center">
-            <span className="sr-only">Timer</span>
-            ⏱
+            <span className="sr-only">Timer</span>⏱
           </span>
           <span className="text-center">
-            <span className="sr-only">Wykonane</span>
-            ✓
+            <span className="sr-only">Wykonane</span>✓
           </span>
         </div>
 

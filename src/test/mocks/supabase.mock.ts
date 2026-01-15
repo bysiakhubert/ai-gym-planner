@@ -1,6 +1,5 @@
-import { vi, beforeEach, afterEach } from 'vitest';
-import { mockDeep, mockReset, type DeepMockProxy } from 'vitest-mock-extended';
-import type { SupabaseClient } from '@/db/supabase.client';
+import { mockDeep, mockReset, type DeepMockProxy } from "vitest-mock-extended";
+import type { SupabaseClient } from "@/db/supabase.client";
 
 /**
  * Deep mock of Supabase Client for testing
@@ -49,9 +48,9 @@ export function mockSupabaseError(message: string, code?: string) {
     data: null,
     error: {
       message,
-      code: code || 'PGRST116',
-      details: '',
-      hint: '',
+      code: code || "PGRST116",
+      details: "",
+      hint: "",
     },
   };
 }

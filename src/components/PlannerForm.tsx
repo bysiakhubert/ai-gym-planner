@@ -244,8 +244,12 @@ export function PlannerForm({ isSubmitting, onSubmit }: PlannerFormProps) {
                     />
                   </FormControl>
                   <div className="flex items-center justify-between">
-                    <FormDescription>Dodaj informacje, które pomogą AI dostosować plan do Twoich potrzeb</FormDescription>
-                    <span className={`text-xs ${isNearLimit ? "text-orange-600 dark:text-orange-400" : "text-muted-foreground"}`}>
+                    <FormDescription>
+                      Dodaj informacje, które pomogą AI dostosować plan do Twoich potrzeb
+                    </FormDescription>
+                    <span
+                      className={`text-xs ${isNearLimit ? "text-orange-600 dark:text-orange-400" : "text-muted-foreground"}`}
+                    >
                       {charCount}/{maxChars}
                     </span>
                   </div>

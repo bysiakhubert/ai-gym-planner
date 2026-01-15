@@ -1,5 +1,5 @@
-import { Page, Locator, expect } from '@playwright/test';
-import { BasePage } from './BasePage';
+import { Page, Locator, expect } from "@playwright/test";
+import { BasePage } from "./BasePage";
 
 /**
  * Page Object for Login page
@@ -16,14 +16,14 @@ export class LoginPage extends BasePage {
 
   constructor(page: Page) {
     super(page);
-    this.emailInput = page.getByLabel('Email');
-    this.passwordInput = page.getByLabel('Hasło');
-    this.submitButton = page.getByRole('button', { name: 'Zaloguj się' });
-    this.errorAlert = page.getByRole('alert');
-    this.forgotPasswordLink = page.getByRole('link', { name: 'Zapomniałeś hasła?' });
-    this.registerLink = page.getByRole('link', { name: 'Zarejestruj się' });
+    this.emailInput = page.getByLabel("Email");
+    this.passwordInput = page.getByLabel("Hasło");
+    this.submitButton = page.getByRole("button", { name: "Zaloguj się" });
+    this.errorAlert = page.getByRole("alert");
+    this.forgotPasswordLink = page.getByRole("link", { name: "Zapomniałeś hasła?" });
+    this.registerLink = page.getByRole("link", { name: "Zarejestruj się" });
     // Use data-slot selector since CardTitle is a div, not a heading
-    this.pageTitle = page.locator('[data-slot="card-title"]').filter({ hasText: 'Zaloguj się' });
+    this.pageTitle = page.locator('[data-slot="card-title"]').filter({ hasText: "Zaloguj się" });
     this.formCard = page.locator('[data-slot="card"]').first();
   }
 
@@ -31,10 +31,10 @@ export class LoginPage extends BasePage {
    * Navigate to login page
    */
   async goto() {
-    await super.goto('/login');
+    await super.goto("/login");
     await this.waitForHydration();
     // Wait for the form to be visible (React component hydrated)
-    await this.emailInput.waitFor({ state: 'visible', timeout: 10000 });
+    await this.emailInput.waitFor({ state: "visible", timeout: 10000 });
   }
 
   /**
@@ -50,7 +50,7 @@ export class LoginPage extends BasePage {
    * Expect successful login (redirected to dashboard)
    */
   async expectLoginSuccess() {
-    await this.page.waitForURL('/');
+    await this.page.waitForURL("/");
     await expect(this.navigation).toBeVisible();
   }
 
@@ -71,5 +71,3 @@ export class LoginPage extends BasePage {
     return await this.pageTitle.isVisible();
   }
 }
-
-
