@@ -26,7 +26,10 @@ export default defineConfig({
   workers: 1,
 
   /* Reporter to use. See https://playwright.dev/docs/test-reporters */
-  reporter: [["html"], ["list"]],
+  reporter: [["html"], ["list"], ["junit", { outputFile: "test-results/results.xml" }]],
+
+  /* Output directory for test artifacts */
+  outputDir: "test-results/",
 
   /* Timeouts */
   timeout: 60000,

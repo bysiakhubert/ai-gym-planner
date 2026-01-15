@@ -90,14 +90,12 @@ jobs:
         
       - name: Install Playwright browsers
         run: npx playwright install --with-deps chromium
-        
+
+      - name: Create test output directories
+        run: mkdir -p test-results playwright-report
+
       - name: Run E2E tests
         run: npm run test:e2e
-
-      - name: Create artifact directories (if missing)
-        run: |
-          mkdir -p playwright-report test-results
-        if: always()
 
       - name: Upload Playwright report
         uses: actions/upload-artifact@v6
