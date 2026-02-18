@@ -326,7 +326,7 @@ create policy "authenticated users can delete own sessions"
     to authenticated
     using (user_id = auth.uid());
 
-comment on policy "authenticated users can delete only their own sessions" on training_sessions is
+comment on policy "authenticated users can delete own sessions" on training_sessions is
 'Allows authenticated users to delete only their own sessions';
 
 -- ============================================================================

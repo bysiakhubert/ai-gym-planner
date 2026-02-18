@@ -28,6 +28,9 @@ screenshots/
 *.png-snapshots/
 e2e/.auth/
 
+# supabase
+supabase/.temp/
+
 # misc
 .vscode/
 .idea/
