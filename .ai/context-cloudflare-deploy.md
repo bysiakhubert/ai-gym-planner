@@ -11,7 +11,7 @@ AI CONTEXT FILE - MAINTENANCE INSTRUCTIONS
 - Deploy ai-gym-planner (Astro 5 SSR) to Cloudflare Pages via GitHub integration.
 
 ## Status
-- BLOCKED - App deployed and accessible (200 OK) but renders `[object Object]` instead of HTML
+- IN PROGRESS - Root cause identified and fix applied, awaiting redeploy verification
 
 ## Working Set (CRITICAL)
 - `astro.config.mjs` - adapter: `@astrojs/cloudflare`, `astro:env` schema defined
@@ -33,26 +33,21 @@ AI CONTEXT FILE - MAINTENANCE INSTRUCTIONS
 - Env vars set in Cloudflare dashboard: `SUPABASE_URL`, `SUPABASE_KEY`, `OPENROUTER_API_KEY`, `SITE_URL`
 - Deployment succeeds (build + deploy green)
 - Cloudflare real-time logs show `200 Ok` for all requests - no errors logged
-- BUT: browser shows only `[object Object]` as the entire page content
+- `[object Object]` root cause found: `nodejs_compat` causes Astro to misidentify Workers as Node.js, returning AsyncIterable response bodies instead of ReadableStream (GitHub issue #14511)
+- Fix applied: added `disable_nodejs_process_v2` compatibility flag to `wrangler.jsonc`
 
 ## Key Decisions
 - `sessionKVBindingName: false` - no `Astro.session` used anywhere
 - `nodejs_compat` flag - required for Supabase SSR in Workers runtime
+- `disable_nodejs_process_v2` flag - workaround for AsyncIterable/[object Object] bug (GitHub #14511)
 - `supabase/.temp/` excluded from git
 - Env vars use `astro:env/server` virtual module (declared in `astro.config.mjs` with `optional: true` and defaults)
 - `SUPABASE_URL`/`SUPABASE_KEY`: `context: "server", access: "secret"`
 - `SITE_URL`: `context: "server", access: "public"`
 
 ## Next Steps
-- Investigate `[object Object]` root cause:
-  - Check `view-source:https://ai-gym-planner.pages.dev/login` - confirm response body is literally `[object Object]`
-  - Check Network tab in DevTools: Content-Type header of the response
-  - Suspect: `astro:env/server` virtual module not resolving correctly in Cloudflare Workers runtime (env vars may not be injected at runtime)
-  - Try replacing `import { SUPABASE_URL, SUPABASE_KEY } from "astro:env/server"` with `import.meta.env.SUPABASE_URL` / `import.meta.env.SUPABASE_KEY` in `src/db/supabase.client.ts` as a diagnostic step
-  - Alternative: check if `dist/_worker.js` exists and is a valid Worker bundle
+- Push fix and verify deploy renders HTML correctly
+- Alternative: if `disable_nodejs_process_v2` causes side effects, replace with `fetch_iterable_type_support` flag or bump `compatibility_date` to `>= 2026-02-19` (auto-enables the fix)
 
 ## Open Questions
-- Why does `200 Ok` response contain `[object Object]` body?
-  - Does `astro:env/server` work correctly with `@astrojs/cloudflare` v12?
-  - Is the Cloudflare Worker runtime properly injecting env vars into the `astro:env/server` module?
-  - Is there a Content-Type mismatch (response sent as non-HTML)?
+- None currently - root cause resolved
