@@ -63,9 +63,10 @@ export const POST: APIRoute = async ({ request, locals }) => {
         status = 500;
       }
 
-      const errorResponse: ApiError = {
+      const errorResponse: ApiError & { _debug?: string } = {
         error: status === 409 ? "ConflictError" : "RegistrationError",
         message,
+        _debug: signUpError.message,
       };
 
       return new Response(JSON.stringify(errorResponse), {
