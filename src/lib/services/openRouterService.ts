@@ -425,39 +425,13 @@ export class OpenRouterService {
 }
 
 /**
- * Lazy singleton instance of OpenRouterService
- * Created on first access to ensure environment variables are loaded
+ * Creates an OpenRouterService instance from env vars.
+ * Call from API routes, passing env obtained via getServerEnv(locals).
  */
-let _openRouterService: OpenRouterService | null = null;
-
-/**
- * Gets the OpenRouterService instance (creates it lazily on first call)
- * Uses import.meta.env for environment variable handling
- *
- * @returns OpenRouterService instance
- * @throws {OpenRouterConfigurationError} If API key is missing
- */
-export function getOpenRouterService(): OpenRouterService {
-  if (!_openRouterService) {
-    _openRouterService = new OpenRouterService({
-      apiKey: import.meta.env.OPENROUTER_API_KEY,
-      siteUrl: import.meta.env.SITE_URL || "http://localhost:3000",
-      siteName: "GymPlanner",
-    });
-  }
-  return _openRouterService;
+export function createOpenRouterService(env: { OPENROUTER_API_KEY?: string; SITE_URL?: string }): OpenRouterService {
+  return new OpenRouterService({
+    apiKey: env.OPENROUTER_API_KEY,
+    siteUrl: env.SITE_URL || "http://localhost:3000",
+    siteName: "GymPlanner",
+  });
 }
-
-/**
- * Singleton instance of OpenRouterService
- * Uses lazy initialization through getOpenRouterService() for proper env var handling
- */
-export const openRouterService = {
-  generateStructuredCompletion: <T>(
-    messages: Message[],
-    schema: z.ZodType<T>,
-    options?: CompletionOptions
-  ): Promise<StructuredCompletionResult<T>> => {
-    return getOpenRouterService().generateStructuredCompletion<T>(messages, schema, options);
-  },
-};

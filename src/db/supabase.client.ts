@@ -37,15 +37,13 @@ function parseCookieHeader(cookieHeader: string): { name: string; value: string 
  * @param context - Astro request context with headers and cookies
  * @returns Supabase client instance configured for SSR
  */
-export const createSupabaseServerInstance = (context: { headers: Headers; cookies: AstroCookies }) => {
-  const supabaseUrl = import.meta.env.SUPABASE_URL;
-  const supabaseKey = import.meta.env.SUPABASE_KEY;
-
-  if (!supabaseUrl || !supabaseKey) {
-    throw new Error("Missing SUPABASE_URL or SUPABASE_KEY environment variable");
-  }
-
-  const supabase = createServerClient<Database>(supabaseUrl, supabaseKey, {
+export const createSupabaseServerInstance = (context: {
+  headers: Headers;
+  cookies: AstroCookies;
+  supabaseUrl: string;
+  supabaseKey: string;
+}) => {
+  const supabase = createServerClient<Database>(context.supabaseUrl, context.supabaseKey, {
     cookieOptions,
     cookies: {
       getAll() {

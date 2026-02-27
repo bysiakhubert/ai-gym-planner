@@ -7,7 +7,9 @@ import {
   OpenRouterNetworkError,
   OpenRouterAPIError,
   OpenRouterParseError,
+  createOpenRouterService,
 } from "src/lib/services/openRouterService";
+import { getServerEnv } from "src/lib/env";
 import type { ApiError } from "src/types";
 
 export const prerender = false;
@@ -113,7 +115,9 @@ export const POST: APIRoute = async ({ request, locals }) => {
     });
 
     // Generate plan using AI
-    const aiPlannerService = new AiPlannerService();
+    const env = getServerEnv(locals);
+    const openRouter = createOpenRouterService(env);
+    const aiPlannerService = new AiPlannerService(openRouter);
     const planPreview = await aiPlannerService.generatePlanPreview(preferences);
 
     // Log successful generation

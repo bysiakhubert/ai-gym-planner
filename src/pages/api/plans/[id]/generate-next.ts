@@ -4,6 +4,8 @@ import { z } from "zod";
 import { planService, PlanNotFoundError } from "src/lib/services/planService";
 import { sessionService } from "src/lib/services/sessionService";
 import { AiPlannerService } from "src/lib/services/aiPlannerService";
+import { createOpenRouterService } from "src/lib/services/openRouterService";
+import { getServerEnv } from "src/lib/env";
 import { auditLogService } from "src/lib/services/auditLogService";
 
 export const prerender = false;
@@ -129,7 +131,9 @@ export const POST: APIRoute = async ({ params, request, locals }) => {
     });
 
     // Step 7: Generate next cycle using AI service
-    const aiPlannerService = new AiPlannerService();
+    const env = getServerEnv(locals);
+    const openRouter = createOpenRouterService(env);
+    const aiPlannerService = new AiPlannerService(openRouter);
     const generatedCycle = await aiPlannerService.generateNextCycle(
       currentPlan,
       sessionHistory,

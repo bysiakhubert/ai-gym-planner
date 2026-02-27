@@ -6,11 +6,12 @@ import type {
   UserPreferences,
 } from "src/types";
 import type { CompletedSessionData } from "./sessionService";
-import { openRouterService } from "./openRouterService";
+import type { OpenRouterService } from "./openRouterService";
 import { aiPlanSchema, aiNextCycleSchema, type AiPlanResponse, type AiNextCycleResponse } from "../schemas/ai-response";
 import { SYSTEM_MESSAGE, formatUserPrompt, formatNextCyclePrompt, sanitizeUserInput } from "./aiPrompts";
 
 export class AiPlannerService {
+  constructor(private readonly openRouter: OpenRouterService) {}
   /**
    * Generates an AI-powered workout plan preview based on user preferences
    * @param preferences - User workout preferences
@@ -31,7 +32,7 @@ export class AiPlannerService {
     const userPrompt = formatUserPrompt(sanitizedPreferences);
 
     // Call OpenRouter API with structured output and fallback support
-    const completionResult = await openRouterService.generateStructuredCompletion<AiPlanResponse>(
+    const completionResult = await this.openRouter.generateStructuredCompletion<AiPlanResponse>(
       [
         { role: "system", content: systemPrompt },
         { role: "user", content: userPrompt },
@@ -117,7 +118,7 @@ export class AiPlannerService {
     );
 
     // Call OpenRouter API with structured output and fallback support
-    const completionResult = await openRouterService.generateStructuredCompletion<AiNextCycleResponse>(
+    const completionResult = await this.openRouter.generateStructuredCompletion<AiNextCycleResponse>(
       [
         { role: "system", content: systemPrompt },
         { role: "user", content: userPrompt },

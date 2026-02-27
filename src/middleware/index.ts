@@ -1,6 +1,6 @@
 import { defineMiddleware } from "astro:middleware";
-
 import { createSupabaseServerInstance } from "../db/supabase.client.ts";
+import { getServerEnv } from "../lib/env.ts";
 
 /**
  * Public paths that don't require authentication
@@ -44,10 +44,14 @@ function isAuthPage(pathname: string): boolean {
  * 4. Redirects authenticated users away from auth pages to /
  */
 export const onRequest = defineMiddleware(async ({ locals, cookies, url, request, redirect }, next) => {
+  const env = getServerEnv(locals);
+
   // Create Supabase client with SSR cookie handling
   const supabase = createSupabaseServerInstance({
     cookies,
     headers: request.headers,
+    supabaseUrl: env.SUPABASE_URL,
+    supabaseKey: env.SUPABASE_KEY,
   });
 
   // Set supabase client in locals for use in routes
