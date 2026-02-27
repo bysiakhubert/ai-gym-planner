@@ -12,6 +12,7 @@ const PUBLIC_PATHS = [
   "/register",
   "/forgot-password",
   // Auth API endpoints
+  "/api/debug-env",
   "/api/auth/signin",
   "/api/auth/register",
   "/api/auth/signout",
@@ -44,6 +45,11 @@ function isAuthPage(pathname: string): boolean {
  * 4. Redirects authenticated users away from auth pages to /
  */
 export const onRequest = defineMiddleware(async ({ locals, cookies, url, request, redirect }, next) => {
+  // Skip env/supabase setup for diagnostic endpoints
+  if (url.pathname === "/api/debug-env") {
+    return next();
+  }
+
   const env = getServerEnv(locals);
 
   // Create Supabase client with SSR cookie handling
