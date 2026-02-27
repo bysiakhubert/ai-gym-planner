@@ -1,7 +1,5 @@
 import { z } from "zod";
 import { zodToJsonSchema } from "zod-to-json-schema";
-import { OPENROUTER_API_KEY, SITE_URL } from "astro:env/server";
-
 /**
  * Base error class for all OpenRouter-related errors
  */
@@ -434,7 +432,7 @@ let _openRouterService: OpenRouterService | null = null;
 
 /**
  * Gets the OpenRouterService instance (creates it lazily on first call)
- * Uses astro:env/server for proper environment variable handling
+ * Uses import.meta.env for environment variable handling
  *
  * @returns OpenRouterService instance
  * @throws {OpenRouterConfigurationError} If API key is missing
@@ -442,8 +440,8 @@ let _openRouterService: OpenRouterService | null = null;
 export function getOpenRouterService(): OpenRouterService {
   if (!_openRouterService) {
     _openRouterService = new OpenRouterService({
-      apiKey: OPENROUTER_API_KEY,
-      siteUrl: SITE_URL || "http://localhost:3000",
+      apiKey: import.meta.env.OPENROUTER_API_KEY,
+      siteUrl: import.meta.env.SITE_URL || "http://localhost:3000",
       siteName: "GymPlanner",
     });
   }

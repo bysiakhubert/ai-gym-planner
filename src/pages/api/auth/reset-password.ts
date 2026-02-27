@@ -1,7 +1,6 @@
 import type { APIRoute } from "astro";
 import { forgotPasswordSchema } from "@/lib/schemas/auth";
 import type { ApiError } from "@/types";
-import { SITE_URL } from "astro:env/server";
 
 export const prerender = false;
 
@@ -37,7 +36,7 @@ export const POST: APIRoute = async ({ request, locals }) => {
 
     // Send password reset email
     const { error } = await supabase.auth.resetPasswordForEmail(email, {
-      redirectTo: `${SITE_URL}/api/auth/callback`,
+      redirectTo: `${import.meta.env.SITE_URL || "http://localhost:3000"}/api/auth/callback`,
     });
 
     if (error) {
